@@ -1,4 +1,4 @@
-@mod @mod_forum
+@mod @mod_anonforum
 Feature: Teachers can edit or delete any forum post
   In order to refine the forum contents
   As a teacher

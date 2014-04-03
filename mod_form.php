@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright Jamie Pratt <me@jamiep.org>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +27,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 
-class mod_forum_mod_form extends moodleform_mod {
+class mod_anonforum_mod_form extends moodleform_mod {
 
     function definition() {
         global $CFG, $COURSE, $DB;
@@ -37,7 +37,7 @@ class mod_forum_mod_form extends moodleform_mod {
 //-------------------------------------------------------------------------------
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        $mform->addElement('text', 'name', get_string('forumname', 'forum'), array('size'=>'64'));
+        $mform->addElement('text', 'name', get_string('anonforumname', 'anonforum'), array('size'=>'64'));
         if (!empty($CFG->formatstringstriptags)) {
             $mform->setType('name', PARAM_TEXT);
         } else {
@@ -46,71 +46,67 @@ class mod_forum_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
-        $this->add_intro_editor(true, get_string('forumintro', 'forum'));
+        $this->add_intro_editor(true, get_string('anonforumintro', 'anonforum'));
 
 
-        $forumtypes = forum_get_forum_types();
-        core_collator::asort($forumtypes, core_collator::SORT_STRING);
-        $mform->addElement('select', 'type', get_string('forumtype', 'forum'), $forumtypes);
-        $mform->addHelpButton('type', 'forumtype', 'forum');
+        $anonforumtypes = anonforum_get_anonforum_types();
+        core_collator::asort($anonforumtypes, core_collator::SORT_STRING);
+        $mform->addElement('select', 'type', get_string('anonforumtype', 'anonforum'), $anonforumtypes);
+        $mform->addHelpButton('type', 'anonforumtype', 'anonforum');
         $mform->setDefault('type', 'general');
 
-        $mform->addElement('checkbox', 'anonymous', get_string('anonymousforum', 'forum'));
-        $mform->addHelpButton('anonymous', 'anonymousforum', 'forum');
-        $mform->setDefault('anonymous', 0);
-
         // Attachments and word count.
-        $mform->addElement('header', 'attachmentswordcounthdr', get_string('attachmentswordcount', 'forum'));
+        $mform->addElement('header', 'attachmentswordcounthdr', get_string('attachmentswordcount', 'anonforum'));
 
-        $choices = get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes, 0, $CFG->forum_maxbytes);
+        $choices = get_max_upload_sizes($CFG->maxbytes, $COURSE->maxbytes, 0, $CFG->anonforum_maxbytes);
         $choices[1] = get_string('uploadnotallowed');
-        $mform->addElement('select', 'maxbytes', get_string('maxattachmentsize', 'forum'), $choices);
-        $mform->addHelpButton('maxbytes', 'maxattachmentsize', 'forum');
-        $mform->setDefault('maxbytes', $CFG->forum_maxbytes);
+        $mform->addElement('select', 'maxbytes', get_string('maxattachmentsize', 'anonforum'), $choices);
+        $mform->addHelpButton('maxbytes', 'maxattachmentsize', 'anonforum');
+        $mform->setDefault('maxbytes', $CFG->anonforum_maxbytes);
 
         $choices = array(0,1,2,3,4,5,6,7,8,9,10,20,50,100);
-        $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'forum'), $choices);
-        $mform->addHelpButton('maxattachments', 'maxattachments', 'forum');
-        $mform->setDefault('maxattachments', $CFG->forum_maxattachments);
+        $mform->addElement('select', 'maxattachments', get_string('maxattachments', 'anonforum'), $choices);
+        $mform->addHelpButton('maxattachments', 'maxattachments', 'anonforum');
+        $mform->setDefault('maxattachments', $CFG->anonforum_maxattachments);
 
-        $mform->addElement('selectyesno', 'displaywordcount', get_string('displaywordcount', 'forum'));
-        $mform->addHelpButton('displaywordcount', 'displaywordcount', 'forum');
+        $mform->addElement('selectyesno', 'displaywordcount', get_string('displaywordcount', 'anonforum'));
+        $mform->addHelpButton('displaywordcount', 'displaywordcount', 'anonforum');
         $mform->setDefault('displaywordcount', 0);
 
         // Subscription and tracking.
-        $mform->addElement('header', 'subscriptionandtrackinghdr', get_string('subscriptionandtracking', 'forum'));
+        $mform->addElement('header', 'subscriptionandtrackinghdr', get_string('subscriptionandtracking', 'anonforum'));
 
         $options = array();
-        $options[FORUM_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'forum');
-        $options[FORUM_FORCESUBSCRIBE] = get_string('subscriptionforced', 'forum');
-        $options[FORUM_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'forum');
-        $options[FORUM_DISALLOWSUBSCRIBE] = get_string('subscriptiondisabled','forum');
-        $mform->addElement('select', 'forcesubscribe', get_string('subscriptionmode', 'forum'), $options);
-        $mform->addHelpButton('forcesubscribe', 'subscriptionmode', 'forum');
+        $options[ANONFORUM_CHOOSESUBSCRIBE] = get_string('subscriptionoptional', 'anonforum');
+        $options[ANONFORUM_FORCESUBSCRIBE] = get_string('subscriptionforced', 'anonforum');
+        $options[ANONFORUM_INITIALSUBSCRIBE] = get_string('subscriptionauto', 'anonforum');
+        $options[ANONFORUM_DISALLOWSUBSCRIBE] = get_string('subscriptiondisabled','anonforum');
+        $mform->addElement('select', 'forcesubscribe', get_string('subscriptionmode', 'anonforum'), $options);
+        $mform->addHelpButton('forcesubscribe', 'subscriptionmode', 'anonforum');
 
         $options = array();
-        $options[FORUM_TRACKING_OPTIONAL] = get_string('trackingoptional', 'forum');
-        $options[FORUM_TRACKING_OFF] = get_string('trackingoff', 'forum');
-        if ($CFG->forum_allowforcedreadtracking) {
-            $options[FORUM_TRACKING_FORCED] = get_string('trackingon', 'forum');
+        $options[ANONFORUM_TRACKING_OPTIONAL] = get_string('trackingoptional', 'anonforum');
+        $options[ANONFORUM_TRACKING_OFF] = get_string('trackingoff', 'anonforum');
+        if ($CFG->anonforum_allowforcedreadtracking) {
+            $options[ANONFORUM_TRACKING_FORCED] = get_string('trackingon', 'anonforum');
         }
-        $mform->addElement('select', 'trackingtype', get_string('trackingtype', 'forum'), $options);
-        $mform->addHelpButton('trackingtype', 'trackingtype', 'forum');
-        $default = $CFG->forum_trackingtype;
-        if ((!$CFG->forum_allowforcedreadtracking) && ($default == FORUM_TRACKING_FORCED)) {
-            $default = FORUM_TRACKING_OPTIONAL;
+        $mform->addElement('select', 'trackingtype', get_string('trackingtype', 'anonforum'), $options);
+        $mform->addHelpButton('trackingtype', 'trackingtype', 'anonforum');
+        $default = $CFG->anonforum_trackingtype;
+        if ((!$CFG->anonforum_allowforcedreadtracking) && ($default == ANONFORUM_TRACKING_FORCED)) {
+            $default = ANONFORUM_TRACKING_OPTIONAL;
         }
         $mform->setDefault('trackingtype', $default);
 
-        if ($CFG->enablerssfeeds && isset($CFG->forum_enablerssfeeds) && $CFG->forum_enablerssfeeds) {
+        if ($CFG->enablerssfeeds && isset($CFG->anonforum_enablerssfeeds) && $CFG->anonforum_enablerssfeeds) {
 //-------------------------------------------------------------------------------
             $mform->addElement('header', 'rssheader', get_string('rss'));
             $choices = array();
             $choices[0] = get_string('none');
-            $choices[1] = get_string('discussions', 'forum');
-            $choices[2] = get_string('posts', 'forum');
+            $choices[1] = get_string('discussions', 'anonforum');
+            $choices[2] = get_string('posts', 'anonforum');
             $mform->addElement('select', 'rsstype', get_string('rsstype'), $choices);
-            $mform->addHelpButton('rsstype', 'rsstype', 'forum');
+            $mform->addHelpButton('rsstype', 'rsstype', 'anonforum');
 
             $choices = array();
             $choices[0] = '0';
@@ -127,14 +123,14 @@ class mod_forum_mod_form extends moodleform_mod {
             $choices[40] = '40';
             $choices[50] = '50';
             $mform->addElement('select', 'rssarticles', get_string('rssarticles'), $choices);
-            $mform->addHelpButton('rssarticles', 'rssarticles', 'forum');
+            $mform->addHelpButton('rssarticles', 'rssarticles', 'anonforum');
             $mform->disabledIf('rssarticles', 'rsstype', 'eq', '0');
         }
 
 //-------------------------------------------------------------------------------
-        $mform->addElement('header', 'blockafterheader', get_string('blockafter', 'forum'));
+        $mform->addElement('header', 'blockafterheader', get_string('blockafter', 'anonforum'));
         $options = array();
-        $options[0] = get_string('blockperioddisabled','forum');
+        $options[0] = get_string('blockperioddisabled','anonforum');
         $options[60*60*24]   = '1 '.get_string('day');
         $options[60*60*24*2] = '2 '.get_string('days');
         $options[60*60*24*3] = '3 '.get_string('days');
@@ -142,29 +138,31 @@ class mod_forum_mod_form extends moodleform_mod {
         $options[60*60*24*5] = '5 '.get_string('days');
         $options[60*60*24*6] = '6 '.get_string('days');
         $options[60*60*24*7] = '1 '.get_string('week');
-        $mform->addElement('select', 'blockperiod', get_string('blockperiod', 'forum'), $options);
-        $mform->addHelpButton('blockperiod', 'blockperiod', 'forum');
+        $mform->addElement('select', 'blockperiod', get_string('blockperiod', 'anonforum'), $options);
+        $mform->addHelpButton('blockperiod', 'blockperiod', 'anonforum');
 
-        $mform->addElement('text', 'blockafter', get_string('blockafter', 'forum'));
+        $mform->addElement('text', 'blockafter', get_string('blockafter', 'anonforum'));
         $mform->setType('blockafter', PARAM_INT);
         $mform->setDefault('blockafter', '0');
         $mform->addRule('blockafter', null, 'numeric', null, 'client');
-        $mform->addHelpButton('blockafter', 'blockafter', 'forum');
+        $mform->addHelpButton('blockafter', 'blockafter', 'anonforum');
         $mform->disabledIf('blockafter', 'blockperiod', 'eq', 0);
 
-        $mform->addElement('text', 'warnafter', get_string('warnafter', 'forum'));
+        $mform->addElement('text', 'warnafter', get_string('warnafter', 'anonforum'));
         $mform->setType('warnafter', PARAM_INT);
         $mform->setDefault('warnafter', '0');
         $mform->addRule('warnafter', null, 'numeric', null, 'client');
-        $mform->addHelpButton('warnafter', 'warnafter', 'forum');
+        $mform->addHelpButton('warnafter', 'warnafter', 'anonforum');
         $mform->disabledIf('warnafter', 'blockperiod', 'eq', 0);
 
         $coursecontext = context_course::instance($COURSE->id);
-        plagiarism_get_form_elements_module($mform, $coursecontext, 'mod_forum');
+        plagiarism_get_form_elements_module($mform, $coursecontext, 'mod_anonforum');
 
 //-------------------------------------------------------------------------------
 
-        $this->standard_grading_coursemodule_elements();
+        // Ratings are remove for the module as they will never be used
+        $this->_features->rating = false;
+
 
         $this->standard_coursemodule_elements();
 //-------------------------------------------------------------------------------
@@ -182,24 +180,15 @@ class mod_forum_mod_form extends moodleform_mod {
         //we don't want to have these appear as possible selections in the form but
         //we want the form to display them if they are set.
         if ($typevalue[0]=='news') {
-            $type->addOption(get_string('namenews', 'forum'), 'news');
-            $mform->addHelpButton('type', 'namenews', 'forum');
+            $type->addOption(get_string('namenews', 'anonforum'), 'news');
+            $mform->addHelpButton('type', 'namenews', 'anonforum');
             $type->freeze();
             $type->setPersistantFreeze(true);
         }
         if ($typevalue[0]=='social') {
-            $type->addOption(get_string('namesocial', 'forum'), 'social');
+            $type->addOption(get_string('namesocial', 'anonforum'), 'social');
             $type->freeze();
             $type->setPersistantFreeze(true);
-        }
-
-        // Disable the anonymous option if it has been enabled
-        $anon      =& $mform->getElement('anonymous');
-        $anonvalue = $mform->getElementValue('anonymous');
-
-        if (!empty($anonvalue[0])) {
-            $anon->freeze();
-            $anon->setPersistantFreeze(true);
         }
 
     }
@@ -231,24 +220,24 @@ class mod_forum_mod_form extends moodleform_mod {
         $mform =& $this->_form;
 
         $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completionpostsenabled', '', get_string('completionposts','forum'));
+        $group[] =& $mform->createElement('checkbox', 'completionpostsenabled', '', get_string('completionposts','anonforum'));
         $group[] =& $mform->createElement('text', 'completionposts', '', array('size'=>3));
         $mform->setType('completionposts',PARAM_INT);
-        $mform->addGroup($group, 'completionpostsgroup', get_string('completionpostsgroup','forum'), array(' '), false);
+        $mform->addGroup($group, 'completionpostsgroup', get_string('completionpostsgroup','anonforum'), array(' '), false);
         $mform->disabledIf('completionposts','completionpostsenabled','notchecked');
 
         $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completiondiscussionsenabled', '', get_string('completiondiscussions','forum'));
+        $group[] =& $mform->createElement('checkbox', 'completiondiscussionsenabled', '', get_string('completiondiscussions','anonforum'));
         $group[] =& $mform->createElement('text', 'completiondiscussions', '', array('size'=>3));
         $mform->setType('completiondiscussions',PARAM_INT);
-        $mform->addGroup($group, 'completiondiscussionsgroup', get_string('completiondiscussionsgroup','forum'), array(' '), false);
+        $mform->addGroup($group, 'completiondiscussionsgroup', get_string('completiondiscussionsgroup','anonforum'), array(' '), false);
         $mform->disabledIf('completiondiscussions','completiondiscussionsenabled','notchecked');
 
         $group=array();
-        $group[] =& $mform->createElement('checkbox', 'completionrepliesenabled', '', get_string('completionreplies','forum'));
+        $group[] =& $mform->createElement('checkbox', 'completionrepliesenabled', '', get_string('completionreplies','anonforum'));
         $group[] =& $mform->createElement('text', 'completionreplies', '', array('size'=>3));
         $mform->setType('completionreplies',PARAM_INT);
-        $mform->addGroup($group, 'completionrepliesgroup', get_string('completionrepliesgroup','forum'), array(' '), false);
+        $mform->addGroup($group, 'completionrepliesgroup', get_string('completionrepliesgroup','anonforum'), array(' '), false);
         $mform->disabledIf('completionreplies','completionrepliesenabled','notchecked');
 
         return array('completiondiscussionsgroup','completionrepliesgroup','completionpostsgroup');
@@ -265,6 +254,8 @@ class mod_forum_mod_form extends moodleform_mod {
         if (!$data) {
             return false;
         }
+        // Bit of a hack, but this is done to maintain consistency between the module and the forum modifications
+        $data->anonymous = true;
         // Turn off completion settings if the checkboxes aren't ticked
         if (!empty($data->completionunlocked)) {
             $autocompletion = !empty($data->completion) && $data->completion==COMPLETION_TRACKING_AUTOMATIC;

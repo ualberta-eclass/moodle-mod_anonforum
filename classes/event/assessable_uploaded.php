@@ -15,21 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * mod_forum assessable uploaded event.
+ * mod_anonforum assessable uploaded event.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @copyright  2013 Frédéric Massart
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace mod_forum\event;
+namespace mod_anonforum\event;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * mod_forum assessable uploaded event class.
+ * mod_anonforum assessable uploaded event class.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @copyright  2013 Frédéric Massart
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -41,7 +41,7 @@ class assessable_uploaded extends \core\event\assessable_uploaded {
      * @return string
      */
     public function get_description() {
-        return "User {$this->userid} has posted some content in the forum post {$this->objectid}.";
+        return "User {$this->userid} has posted some content in the anonymous forum post {$this->objectid}.";
     }
 
     /**
@@ -51,7 +51,7 @@ class assessable_uploaded extends \core\event\assessable_uploaded {
      */
     protected function get_legacy_eventdata() {
         $eventdata = new \stdClass();
-        $eventdata->modulename   = 'forum';
+        $eventdata->modulename   = 'anonforum';
         $eventdata->name         = $this->other['triggeredfrom'];
         $eventdata->cmid         = $this->context->instanceid;
         $eventdata->itemid       = $this->objectid;
@@ -79,7 +79,7 @@ class assessable_uploaded extends \core\event\assessable_uploaded {
      * @return string
      */
     public static function get_name() {
-        return get_string('event_assessable_uploaded', 'mod_forum');
+        return get_string('event_assessable_uploaded', 'mod_anonforum');
     }
 
     /**
@@ -88,7 +88,7 @@ class assessable_uploaded extends \core\event\assessable_uploaded {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('/mod/forum/discuss.php', array('d' => $this->other['discussionid'], 'parent' => $this->objectid));
+        return new \moodle_url('/mod/anonforum/discuss.php', array('d' => $this->other['discussionid'], 'parent' => $this->objectid));
     }
 
     /**
@@ -98,7 +98,7 @@ class assessable_uploaded extends \core\event\assessable_uploaded {
      */
     protected function init() {
         parent::init();
-        $this->data['objecttable'] = 'forum_posts';
+        $this->data['objecttable'] = 'anonforum_posts';
     }
 
     /**

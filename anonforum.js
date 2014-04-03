@@ -1,19 +1,19 @@
 var timefromitems = ['fromday','frommonth','fromyear','fromhour', 'fromminute'];
 var timetoitems = ['today','tomonth','toyear','tohour','tominute'];
 
-function forum_produce_subscribe_link(forumid, backtoindex, ltext, ltitle) {
+function anonforum_produce_subscribe_link(anonforumid, backtoindex, ltext, ltitle) {
     var elementid = "subscriptionlink";
     var subs_link = document.getElementById(elementid);
     if(subs_link){
-        subs_link.innerHTML = "<a title='"+ltitle+"' href='"+M.cfg.wwwroot+"/mod/forum/subscribe.php?id="+forumid+backtoindex+"&amp;sesskey="+M.cfg.sesskey+"'>"+ltext+"<\/a>";
+        subs_link.innerHTML = "<a title='"+ltitle+"' href='"+M.cfg.wwwroot+"/mod/anonforum/subscribe.php?id="+anonforumid+backtoindex+"&amp;sesskey="+M.cfg.sesskey+"'>"+ltext+"<\/a>";
     }
 }
 
-function forum_produce_tracking_link(forumid, ltext, ltitle) {
+function anonforum_produce_tracking_link(anonforumid, ltext, ltitle) {
     var elementid = "trackinglink";
     var subs_link = document.getElementById(elementid);
     if(subs_link){
-        subs_link.innerHTML = "<a title='"+ltitle+"' href='"+M.cfg.wwwroot+"/mod/forum/settracking.php?id="+forumid+"'>"+ltext+"<\/a>";
+        subs_link.innerHTML = "<a title='"+ltitle+"' href='"+M.cfg.wwwroot+"/mod/anonforum/settracking.php?id="+anonforumid+"'>"+ltext+"<\/a>";
     }
 }
 

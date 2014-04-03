@@ -1,4 +1,4 @@
-@mod @mod_forum
+@mod @mod_anonforum
 Feature: Students can choose from 4 discussion display options and their choice is remembered
   In order to read forum posts in a suitable view
   As a user
@@ -72,12 +72,12 @@ Feature: Students can choose from 4 discussion display options and their choice 
     And I follow "Discussion 1"
     When I select "Display replies in threaded form" from "mode"
     Then I should see "Discussion contents 1, first message"
-    And I should see "Reply 1 to discussion 1" in the "span.forumthread" "css_element"
+    And I should see "Reply 1 to discussion 1" in the "span.anonforumthread" "css_element"
     And I follow "Test forum name"
     And I follow "Discussion 2"
     And the "Display mode" field should match "Display replies in threaded form" value
     And I should see "Discussion contents 2, first message"
-    And I should see "Reply 1 to discussion 2" in the "span.forumthread" "css_element"
+    And I should see "Reply 1 to discussion 2" in the "span.anonforumthread" "css_element"
 
   @javascript
   Scenario: Display replies in nested form
@@ -85,9 +85,9 @@ Feature: Students can choose from 4 discussion display options and their choice 
     And I follow "Discussion 1"
     When I select "Display replies in nested form" from "mode"
     Then I should see "Discussion contents 1, first message" in the "div.firstpost.starter" "css_element"
-    And I should see "Discussion contents 1, second message" in the "div.indent div.forumpost" "css_element"
+    And I should see "Discussion contents 1, second message" in the "div.indent div.anonforumpost" "css_element"
     And I follow "Test forum name"
     And I follow "Discussion 2"
     And the "Display mode" field should match "Display replies in nested form" value
     And I should see "Discussion contents 2, first message" in the "div.firstpost.starter" "css_element"
-    And I should see "Discussion contents 2, second message" in the "div.indent div.forumpost" "css_element"
+    And I should see "Discussion contents 2, second message" in the "div.indent div.anonforumpost" "css_element"

@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Event observers used in forum.
+ * Event observers used in anonymous forum.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @copyright  2013 Rajesh Taneja <rajesh@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,9 +25,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Event observer for mod_forum.
+ * Event observer for mod_anonforum.
  */
-class mod_forum_observer {
+class mod_anonforum_observer {
 
     /**
      * Triggered via user_enrolment_deleted event.
@@ -42,12 +42,12 @@ class mod_forum_observer {
         $cp = (object)$event->other['userenrolment'];
         if ($cp->lastenrol) {
             $params = array('userid' => $cp->userid, 'courseid' => $cp->courseid);
-            $forumselect = "IN (SELECT f.id FROM {forum} f WHERE f.course = :courseid)";
+            $anonforumselect = "IN (SELECT f.id FROM {anonforum} f WHERE f.course = :courseid)";
 
-            $DB->delete_records_select('forum_digests', 'userid = :userid AND forum '.$forumselect, $params);
-            $DB->delete_records_select('forum_subscriptions', 'userid = :userid AND forum '.$forumselect, $params);
-            $DB->delete_records_select('forum_track_prefs', 'userid = :userid AND forumid '.$forumselect, $params);
-            $DB->delete_records_select('forum_read', 'userid = :userid AND forumid '.$forumselect, $params);
+            $DB->delete_records_select('anonforum_digests', 'userid = :userid AND anonforum '.$anonforumselect, $params);
+            $DB->delete_records_select('anonforum_subscriptions', 'userid = :userid AND anonforum '.$anonforumselect, $params);
+            $DB->delete_records_select('anonforum_track_prefs', 'userid = :userid AND anonforumid '.$anonforumselect, $params);
+            $DB->delete_records_select('anonforum_read', 'userid = :userid AND anonforumid '.$anonforumselect, $params);
         }
     }
 
@@ -63,31 +63,31 @@ class mod_forum_observer {
         $context = context::instance_by_id($event->contextid, MUST_EXIST);
 
         // If contextlevel is course then only subscribe user. Role assignment
-        // at course level means user is enroled in course and can subscribe to forum.
+        // at course level means user is enroled in course and can subscribe to anonymous forum.
         if ($context->contextlevel != CONTEXT_COURSE) {
             return;
         }
 
-        // Forum lib required for the constant used below.
-        require_once($CFG->dirroot . '/mod/forum/lib.php');
+        // Anonymous Forum lib required for the constant used below.
+        require_once($CFG->dirroot . '/mod/anonforum/lib.php');
 
         $userid = $event->relateduserid;
         $sql = "SELECT f.id, cm.id AS cmid
-                  FROM {forum} f
+                  FROM {anonforum} f
                   JOIN {course_modules} cm ON (cm.instance = f.id)
                   JOIN {modules} m ON (m.id = cm.module)
-             LEFT JOIN {forum_subscriptions} fs ON (fs.forum = f.id AND fs.userid = :userid)
+             LEFT JOIN {anonforum_subscriptions} fs ON (fs.anonforum = f.id AND fs.userid = :userid)
                  WHERE f.course = :courseid
                    AND f.forcesubscribe = :initial
-                   AND m.name = 'forum'
+                   AND m.name = 'anonforum'
                    AND fs.id IS NULL";
-        $params = array('courseid' => $context->instanceid, 'userid' => $userid, 'initial' => FORUM_INITIALSUBSCRIBE);
+        $params = array('courseid' => $context->instanceid, 'userid' => $userid, 'initial' => ANONFORUM_INITIALSUBSCRIBE);
 
-        $forums = $DB->get_records_sql($sql, $params);
-        foreach ($forums as $forum) {
+        $anonforums = $DB->get_records_sql($sql, $params);
+        foreach ($anonforums as $anonforum) {
             // If user doesn't have allowforcesubscribe capability then don't subscribe.
-            if (has_capability('mod/forum:allowforcesubscribe', context_module::instance($forum->cmid), $userid)) {
-                forum_subscribe($userid, $forum->id);
+            if (has_capability('mod/anonforum:allowforcesubscribe', context_module::instance($anonforum->cmid), $userid)) {
+                anonforum_subscribe($userid, $anonforum->id);
             }
         }
     }

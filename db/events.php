@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum event handler definition.
+ * Anonymous forum event handler definition.
  *
- * @package mod_forum
+ * @package mod_anonforum
  * @category event
  * @copyright 2010 Petr Skoda  {@link http://skodak.org}
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,11 +28,11 @@ $observers = array(
 
     array(
         'eventname'   => '\core\event\user_enrolment_deleted',
-        'callback'    => 'mod_forum_observer::user_enrolment_deleted',
+        'callback'    => 'mod_anonforum_observer::user_enrolment_deleted',
     ),
 
     array(
         'eventname' => '\core\event\role_assigned',
-        'callback' => 'mod_forum_observer::role_assigned'
+        'callback' => 'mod_anonforum_observer::role_assigned'
     ),
 );

@@ -1,4 +1,4 @@
-<?php
+x<?php
 
 // This file is part of Moodle - http://moodle.org/
 //
@@ -16,22 +16,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains a custom renderer class used by the forum module.
+ * This file contains a custom renderer class used by the anonforum module.
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 2009 Sam Hemelryk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * A custom renderer class that extends the plugin_renderer_base and
- * is used by the forum module.
+ * is used by the anonforum module.
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 2009 Sam Hemelryk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  **/
-class mod_forum_renderer extends plugin_renderer_base {
+class mod_anonforum_renderer extends plugin_renderer_base {
     /**
      * This method is used to generate HTML for a subscriber selection form that
      * uses two user_selector controls
@@ -77,21 +77,21 @@ class mod_forum_renderer extends plugin_renderer_base {
      * the subscribers page if editing was turned off
      *
      * @param array $users
-     * @param object $forum
+     * @param object $anonforum
      * @param object $course
      * @return string
      */
-    public function subscriber_overview($users, $forum , $course) {
+    public function subscriber_overview($users, $anonforum , $course) {
         $output = '';
         $modinfo = get_fast_modinfo($course);
         if (!$users || !is_array($users) || count($users)===0) {
-            $output .= $this->output->heading(get_string("nosubscribers", "forum"));
-        } else if (!isset($modinfo->instances['forum'][$forum->id])) {
+            $output .= $this->output->heading(get_string("nosubscribers", "anonforum"));
+        } else if (!isset($modinfo->instances['anonforum'][$anonforum->id])) {
             $output .= $this->output->heading(get_string("invalidmodule", "error"));
         } else {
-            $cm = $modinfo->instances['forum'][$forum->id];
+            $cm = $modinfo->instances['anonforum'][$anonforum->id];
             $canviewemail = in_array('email', get_extra_user_fields(context_module::instance($cm->id)));
-            $output .= $this->output->heading(get_string("subscribersto","forum", "'".format_string($forum->name)."'"));
+            $output .= $this->output->heading(get_string("subscribersto","anonforum", "'".format_string($anonforum->name)."'"));
             $table = new html_table();
             $table->cellpadding = 5;
             $table->cellspacing = 5;
@@ -118,7 +118,7 @@ class mod_forum_renderer extends plugin_renderer_base {
      */
     public function subscribed_users(user_selector_base $existingusers) {
         $output  = $this->output->box_start('subscriberdiv boxaligncenter');
-        $output .= html_writer::tag('p', get_string('forcessubscribe', 'forum'));
+        $output .= html_writer::tag('p', get_string('forcessubscribe', 'anonforum'));
         $output .= $existingusers->display(true);
         $output .= $this->output->box_end();
         return $output;
@@ -126,14 +126,14 @@ class mod_forum_renderer extends plugin_renderer_base {
 
 
     /**
-     * This is used when a forum has been setup as an anonymous forum.
+     * This is used when a anonforum has been setup as an anonymous anonforum.
      * In such a case we will not want to be rendering the subscriber list.
      *
      * @return string
      */
         public function subscribed_anonymous() {
         $output  = $this->output->box_start('boxaligncenter');
-        $output .= html_writer::tag('p', get_string('anonymoussubscribers_hidden', 'forum'), array('style' => 'text-align:center'));
+        $output .= html_writer::tag('p', get_string('anonymoussubscribers_hidden', 'anonforum'), array('style' => 'text-align:center'));
         $output .= $this->output->box_end();
         return $output;
     }

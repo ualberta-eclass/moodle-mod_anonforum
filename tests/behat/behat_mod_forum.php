@@ -17,7 +17,7 @@
 /**
  * Steps definitions related with the forum activity.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @category   test
  * @copyright  2013 David Monllaó
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -32,28 +32,28 @@ use Behat\Behat\Context\Step\Given as Given,
 /**
  * Forum-related steps definitions.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @category   test
  * @copyright  2013 David Monllaó
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class behat_mod_forum extends behat_base {
+class behat_mod_anonforum extends behat_base {
 
     /**
      * Adds a discussion to the forum specified by it's name with the provided table data (usually Subject and Message). The step begins from the forum's course page.
      *
-     * @Given /^I add a new discussion to "(?P<forum_name_string>(?:[^"]|\\")*)" forum with:$/
-     * @param string $forumname
+     * @Given /^I add a new discussion to "(?P<anonforum_name_string>(?:[^"]|\\")*)" forum with:$/
+     * @param string $anonforumname
      * @param TableNode $table
      */
-    public function i_add_a_forum_discussion_to_forum_with($forumname, TableNode $table) {
+    public function i_add_a_anonforum_discussion_to_anonforum_with($anonforumname, TableNode $table) {
 
-        // Escaping $forumname as it has been stripped automatically by the transformer.
+        // Escaping $anonforumname as it has been stripped automatically by the transformer.
         return array(
-            new Given('I follow "' . $this->escape($forumname) . '"'),
-            new Given('I press "' . get_string('addanewdiscussion', 'forum') . '"'),
+            new Given('I follow "' . $this->escape($anonforumname) . '"'),
+            new Given('I press "' . get_string('addanewdiscussion', 'anonforum') . '"'),
             new Given('I fill the moodle form with:', $table),
-            new Given('I press "' . get_string('posttoforum', 'forum') . '"'),
+            new Given('I press "' . get_string('posttoforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
     }
@@ -61,19 +61,19 @@ class behat_mod_forum extends behat_base {
     /**
      * Adds a reply to the specified post of the specified forum. The step begins from the forum's page or from the forum's course page.
      *
-     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post from "(?P<forum_name_string>(?:[^"]|\\")*)" forum with:$/
+     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post from "(?P<anonforum_name_string>(?:[^"]|\\")*)" forum with:$/
      * @param string $postname The subject of the post
-     * @param string $forumname The forum name
+     * @param string $anonforumname The forum name
      * @param TableNode $table
      */
-    public function i_reply_post_from_forum_with($postsubject, $forumname, TableNode $table) {
+    public function i_reply_post_from_anonforum_with($postsubject, $anonforumname, TableNode $table) {
 
         return array(
-            new Given('I follow "' . $this->escape($forumname) . '"'),
+            new Given('I follow "' . $this->escape($anonforumname) . '"'),
             new Given('I follow "' . $this->escape($postsubject) . '"'),
-            new Given('I follow "' . get_string('reply', 'forum') . '"'),
+            new Given('I follow "' . get_string('reply', 'anonforum') . '"'),
             new Given('I fill the moodle form with:', $table),
-            new Given('I press "' . get_string('posttoforum', 'forum') . '"'),
+            new Given('I press "' . get_string('posttoforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
 

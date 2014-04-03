@@ -16,9 +16,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Set tracking option for the forum.
+ * Set tracking option for the anonforum.
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 2005 mchurch
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,12 +26,12 @@
 require_once("../../config.php");
 require_once("lib.php");
 
-$f          = required_param('f',PARAM_INT); // The forum to mark
+$f          = required_param('f',PARAM_INT); // The anonymous forum to mark
 $mark       = required_param('mark',PARAM_ALPHA); // Read or unread?
 $d          = optional_param('d',0,PARAM_INT); // Discussion to mark.
 $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE);    // Page to return to.
 
-$url = new moodle_url('/mod/forum/markposts.php', array('f'=>$f, 'mark'=>$mark));
+$url = new moodle_url('/mod/anonforum/markposts.php', array('f'=>$f, 'mark'=>$mark));
 if ($d !== 0) {
     $url->param('d', $d);
 }
@@ -40,15 +40,15 @@ if ($returnpage !== 'index.php') {
 }
 $PAGE->set_url($url);
 
-if (! $forum = $DB->get_record("forum", array("id" => $f))) {
-    print_error('invalidforumid', 'forum');
+if (! $anonforum = $DB->get_record("anonforum", array("id" => $f))) {
+    print_error('invalidanonforumid', 'anonforum');
 }
 
-if (! $course = $DB->get_record("course", array("id" => $forum->course))) {
+if (! $course = $DB->get_record("course", array("id" => $anonforum->course))) {
     print_error('invalidcourseid');
 }
 
-if (!$cm = get_coursemodule_from_instance("forum", $forum->id, $course->id)) {
+if (!$cm = get_coursemodule_from_instance("anonforum", $anonforum->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
@@ -57,53 +57,53 @@ $user = $USER;
 require_login($course, false, $cm);
 
 if ($returnpage == 'index.php') {
-    $returnto = forum_go_back_to($returnpage.'?id='.$course->id);
+    $returnto = anonforum_go_back_to($returnpage.'?id='.$course->id);
 } else {
-    $returnto = forum_go_back_to($returnpage.'?f='.$forum->id);
+    $returnto = anonforum_go_back_to($returnpage.'?f='.$anonforum->id);
 }
 
-if (isguestuser()) {   // Guests can't change forum
+if (isguestuser()) {   // Guests can't change anonforum
     $PAGE->set_title($course->shortname);
     $PAGE->set_heading($course->fullname);
     echo $OUTPUT->header();
-    echo $OUTPUT->confirm(get_string('noguesttracking', 'forum').'<br /><br />'.get_string('liketologin'), get_login_url(), $returnto);
+    echo $OUTPUT->confirm(get_string('noguesttracking', 'anonforum').'<br /><br />'.get_string('liketologin'), get_login_url(), $returnto);
     echo $OUTPUT->footer();
     exit;
 }
 
 $info = new stdClass();
 $info->name  = fullname($user);
-$info->forum = format_string($forum->name);
+$info->anonforum = format_string($anonforum->name);
 
 if ($mark == 'read') {
     if (!empty($d)) {
-        if (! $discussion = $DB->get_record('forum_discussions', array('id'=> $d, 'forum'=> $forum->id))) {
-            print_error('invaliddiscussionid', 'forum');
+        if (! $discussion = $DB->get_record('anonforum_discussions', array('id'=> $d, 'anonforum'=> $anonforum->id))) {
+            print_error('invaliddiscussionid', 'anonforum');
         }
 
-        if (forum_tp_mark_discussion_read($user, $d) && empty($forum->anonymous)) {
-            add_to_log($course->id, "discussion", "mark read", "view.php?f=$forum->id", $d, $cm->id);
+        if (anonforum_tp_mark_discussion_read($user, $d) && empty($anonforum->anonymous)) {
+            add_to_log($course->id, "discussion", "mark read", "view.php?f=$anonforum->id", $d, $cm->id);
         }
     } else {
         // Mark all messages read in current group
         $currentgroup = groups_get_activity_group($cm);
         if(!$currentgroup) {
-            // mark_forum_read requires ===false, while get_activity_group
+            // mark_anonymous forum_read requires ===false, while get_activity_group
             // may return 0
             $currentgroup=false;
         }
-        if (forum_tp_mark_forum_read($user, $forum->id,$currentgroup) && empty($forum->anonymous)) {
-            add_to_log($course->id, "forum", "mark read", "view.php?f=$forum->id", $forum->id, $cm->id);
+        if (anonforum_tp_mark_anonforum_read($user, $anonforum->id,$currentgroup) && empty($anonforum->anonymous)) {
+            add_to_log($course->id, "anonforum", "mark read", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
         }
     }
 
 /// FUTURE - Add ability to mark them as unread.
 //    } else { // subscribe
-//        if (forum_tp_start_tracking($forum->id, $user->id)) {
-//            add_to_log($course->id, "forum", "mark unread", "view.php?f=$forum->id", $forum->id, $cm->id);
-//            redirect($returnto, get_string("nowtracking", "forum", $info), 1);
+//        if (anonforum_tp_start_tracking($anonymous forum->id, $user->id)) {
+//            add_to_log($course->id, "anonforum", "mark unread", "view.php?f=$anonforum->id", $anonymous forum->id, $cm->id);
+//            redirect($returnto, get_string("nowtracking", "anonymous forum", $info), 1);
 //        } else {
-//            print_error("Could not start tracking that forum", $_SERVER["HTTP_REFERER"]);
+//            print_error("Could not start tracking that anonymous forum", $_SERVER["HTTP_REFERER"]);
 //        }
 }
 

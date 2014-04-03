@@ -19,7 +19,7 @@
  * Displays a post, and all the posts below it.
  * If no post is given, displays all posts in a discussion
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,127 +29,145 @@ require_once('../../config.php');
 $d      = required_param('d', PARAM_INT);                // Discussion ID
 $parent = optional_param('parent', 0, PARAM_INT);        // If set, then display this post and all children.
 $mode   = optional_param('mode', 0, PARAM_INT);          // If set, changes the layout of the thread
-$move   = optional_param('move', 0, PARAM_INT);          // If set, moves this discussion to another forum
+$move   = optional_param('move', 0, PARAM_INT);          // If set, moves this discussion to another  anonymous forum
 $mark   = optional_param('mark', '', PARAM_ALPHA);       // Used for tracking read posts if user initiated.
 $postid = optional_param('postid', 0, PARAM_INT);        // Used for tracking read posts if user initiated.
 
-$url = new moodle_url('/mod/forum/discuss.php', array('d'=>$d));
+$url = new moodle_url('/mod/anonforum/discuss.php', array('d'=>$d));
 if ($parent !== 0) {
     $url->param('parent', $parent);
 }
 $PAGE->set_url($url);
 
-$discussion = $DB->get_record('forum_discussions', array('id' => $d), '*', MUST_EXIST);
+$discussion = $DB->get_record('anonforum_discussions', array('id' => $d), '*', MUST_EXIST);
 $course = $DB->get_record('course', array('id' => $discussion->course), '*', MUST_EXIST);
-$forum = $DB->get_record('forum', array('id' => $discussion->forum), '*', MUST_EXIST);
-$cm = get_coursemodule_from_instance('forum', $forum->id, $course->id, false, MUST_EXIST);
+$anonforum = $DB->get_record('anonforum', array('id' => $discussion->anonforum), '*', MUST_EXIST);
+$cm = get_coursemodule_from_instance('anonforum', $anonforum->id, $course->id, false, MUST_EXIST);
 
 require_course_login($course, true, $cm);
 
 // move this down fix for MDL-6926
-require_once($CFG->dirroot.'/mod/forum/lib.php');
+require_once($CFG->dirroot.'/mod/anonforum/lib.php');
 
 $modcontext = context_module::instance($cm->id);
-require_capability('mod/forum:viewdiscussion', $modcontext, NULL, true, 'noviewdiscussionspermission', 'forum');
+require_capability('mod/anonforum:viewdiscussion', $modcontext, NULL, true, 'noviewdiscussionspermission', 'anonforum');
 
-if (!empty($CFG->enablerssfeeds) && !empty($CFG->forum_enablerssfeeds) && $forum->rsstype && $forum->rssarticles) {
+if (!empty($CFG->enablerssfeeds) && !empty($CFG->anonforum_enablerssfeeds) && $anonforum->rsstype && $anonforum->rssarticles) {
     require_once("$CFG->libdir/rsslib.php");
 
-    $rsstitle = format_string($course->shortname, true, array('context' => context_course::instance($course->id))) . ': ' . format_string($forum->name);
-    rss_add_http_header($modcontext, 'mod_forum', $forum, $rsstitle);
+    $rsstitle = format_string($course->shortname, true, array('context' => context_course::instance($course->id))) . ': ' . format_string($anonforum->name);
+    rss_add_http_header($modcontext, 'mod_anonforum', $anonforum, $rsstitle);
 }
 
 // move discussion if requested
 if ($move > 0 and confirm_sesskey()) {
-    $return = $CFG->wwwroot.'/mod/forum/discuss.php?d='.$discussion->id;
+    $return = $CFG->wwwroot.'/mod/anonforum/discuss.php?d='.$discussion->id;
 
-    require_capability('mod/forum:movediscussions', $modcontext);
+    require_capability('mod/anonforum:movediscussions', $modcontext);
 
-    if ($forum->type == 'single') {
-        print_error('cannotmovefromsingleforum', 'forum', $return);
+    if ($anonforum->type == 'single') {
+        print_error('cannotmovefromsingleanonforum', 'anonforum', $return);
     }
 
-    if (!$forumto = $DB->get_record('forum', array('id' => $move))) {
-        print_error('cannotmovetonotexist', 'forum', $return);
+    if (!$anonforumto = $DB->get_record('anonforum', array('id' => $move))) {
+        print_error('cannotmovetonotexist', 'anonforum', $return);
     }
 
-    if ($forumto->type == 'single') {
-        print_error('cannotmovetosingleforum', 'forum', $return);
+    if ($anonforumto->type == 'single') {
+        print_error('cannotmovetosingleanonforum', 'anonforum', $return);
     }
 
-    if (!$cmto = get_coursemodule_from_instance('forum', $forumto->id, $course->id)) {
-        print_error('cannotmovetonotfound', 'forum', $return);
+    if (!$cmto = get_coursemodule_from_instance('anonforum', $anonforumto->id, $course->id)) {
+        print_error('cannotmovetonotfound', 'anonforum', $return);
     }
 
+    if (!coursemodule_visible_for_user($cmto)) {
+        print_error('cannotmovenotvisible', 'anonforum', $return);
+    }
 
-    // Delete the RSS files for the 2 forums to force regeneration of the feeds
-    require_once($CFG->dirroot.'/mod/forum/rsslib.php');
-    forum_rss_delete_file($forum);
-    forum_rss_delete_file($forumto);
+    require_capability('mod/anonforum:startdiscussion', context_module::instance($cmto->id));
 
-    if (!forum_move_attachments($discussion, $forum->id, $forumto->id)) {
+    if (!anonforum_move_attachments($discussion, $anonforum->id, $anonforumto->id)) {
         echo $OUTPUT->notification("Errors occurred while moving attachment directories - check your file permissions");
     }
-    $DB->set_field('forum_discussions', 'forum', $forumto->id, array('id' => $discussion->id));
-    $DB->set_field('forum_read', 'forumid', $forumto->id, array('discussionid' => $discussion->id));
-    add_to_log($course->id, 'forum', 'move discussion', "discuss.php?d=$discussion->id", $discussion->id, $cmto->id);
+    $DB->set_field('anonforum_discussions', 'anonforum', $anonforumto->id, array('id' => $discussion->id));
+    $DB->set_field('anonforum_read', 'anonforumid', $anonforumto->id, array('discussionid' => $discussion->id));
+    add_to_log($course->id, 'anonforum', 'move discussion', "discuss.php?d=$discussion->id", $discussion->id, $cmto->id);
 
-    require_once($CFG->libdir.'/rsslib.php');
-    require_once($CFG->dirroot.'/mod/forum/rsslib.php');
-
-    // Delete the RSS files for the 2 forums to force regeneration of the feeds
-    forum_rss_delete_file($forum);
-    forum_rss_delete_file($forumto);
+    // Delete the RSS files for the 2  anonymous forums to force regeneration of the feeds
+    require_once($CFG->dirroot.'/mod/anonforum/rsslib.php');
+    anonforum_rss_delete_file($anonforum);
+    anonforum_rss_delete_file($anonforumto);
 
     redirect($return.'&moved=-1&sesskey='.sesskey());
 }
 
-if(empty($forum->anonymous)) {
-    add_to_log($course->id, 'forum', 'view discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
+if(empty($anonforum->anonymous)) {
+    add_to_log($course->id, 'anonforum', 'view discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
 }
 
 unset($SESSION->fromdiscussion);
 
 if ($mode) {
-    set_user_preference('forum_displaymode', $mode);
+    set_user_preference('anonforum_displaymode', $mode);
 }
 
-$displaymode = get_user_preferences('forum_displaymode', $CFG->forum_displaymode);
+$displaymode = get_user_preferences('anonforum_displaymode', $CFG->anonforum_displaymode);
 
 if ($parent) {
     // If flat AND parent, then force nested display this time
-    if ($displaymode == FORUM_MODE_FLATOLDEST or $displaymode == FORUM_MODE_FLATNEWEST) {
-        $displaymode = FORUM_MODE_NESTED;
+    if ($displaymode == ANONFORUM_MODE_FLATOLDEST or $displaymode == ANONFORUM_MODE_FLATNEWEST) {
+        $displaymode = ANONFORUM_MODE_NESTED;
     }
 } else {
     $parent = $discussion->firstpost;
 }
 
-if (! $post = forum_get_post_full($parent)) {
-    print_error("notexists", 'forum', "$CFG->wwwroot/mod/forum/view.php?f=$forum->id");
+if (! $post = anonforum_get_post_full($parent)) {
+    print_error("notexists", 'anonforum', "$CFG->wwwroot/mod/anonforum/view.php?f=$anonforum->id");
 }
 
-if (!forum_user_can_see_post($forum, $discussion, $post, null, $cm)) {
-    print_error('noviewdiscussionspermission', 'forum', "$CFG->wwwroot/mod/forum/view.php?id=$forum->id");
+if (!anonforum_user_can_see_post($anonforum, $discussion, $post, null, $cm)) {
+    print_error('noviewdiscussionspermission', 'anonforum', "$CFG->wwwroot/mod/anonforum/view.php?id=$anonforum->id");
 }
 
 if ($mark == 'read' or $mark == 'unread') {
-    if ($CFG->forum_usermarksread && forum_tp_can_track_forums($forum) && forum_tp_is_tracked($forum)) {
+    if ($CFG->anonforum_usermarksread && anonforum_tp_can_track_anonforums($anonforum) && anonforum_tp_is_tracked($anonforum)) {
         if ($mark == 'read') {
-            forum_tp_add_read_record($USER->id, $postid);
+            anonforum_tp_add_read_record($USER->id, $postid);
         } else {
             // unread
-            forum_tp_delete_read_records($USER->id, $postid);
+            anonforum_tp_delete_read_records($USER->id, $postid);
         }
     }
 }
 
-/// Check to see if groups are being used in this forum
+$searchform = forum_search_form($course);
+
+$anonforumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
+if (empty($anonforumnode)) {
+    $anonforumnode = $PAGE->navbar;
+} else {
+    $anonforumnode->make_active();
+}
+$node = $anonforumnode->add(format_string($discussion->name), new moodle_url('/mod/anonforum/discuss.php', array('d'=>$discussion->id)));
+$node->display = false;
+if ($node && $post->id != $discussion->firstpost) {
+    $node->add(format_string($post->subject), $PAGE->url);
+}
+
+$PAGE->set_title("$course->shortname: ".format_string($discussion->name));
+$PAGE->set_heading($course->fullname);
+$PAGE->set_button($searchform);
+echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($anonforum->name), 2);
+
+/// Check to see if groups are being used in this anonymous forum
 /// If so, make sure the current person is allowed to see this discussion
 /// Also, if we know they should be able to reply, then explicitly set $canreply for performance reasons
 
-$canreply = forum_user_can_post($forum, $discussion, $USER, $cm, $course, $modcontext);
-if (!$canreply and $forum->type !== 'news') {
+$canreply = anonforum_user_can_post($anonforum, $discussion, $USER, $cm, $course, $modcontext);
+if (!$canreply and $anonforum->type !== 'news') {
     if (isguestuser() or !isloggedin()) {
         $canreply = true;
     }
@@ -163,11 +181,11 @@ if (!$canreply and $forum->type !== 'news') {
 /// Print the controls across the top
 echo '<div class="discussioncontrols clearfix">';
 
-if (!empty($CFG->enableportfolios) && has_capability('mod/forum:exportdiscussion', $modcontext)) {
+if (!empty($CFG->enableportfolios) && has_capability('mod/anonforum:exportdiscussion', $modcontext)) {
     require_once($CFG->libdir.'/portfoliolib.php');
     $button = new portfolio_add_button();
-    $button->set_callback_options('forum_portfolio_caller', array('discussionid' => $discussion->id), 'mod_forum');
-    $button = $button->to_html(PORTFOLIO_ADD_FULL_FORM, get_string('exportdiscussion', 'mod_forum'));
+    $button->set_callback_options('anonforum_portfolio_caller', array('discussionid' => $discussion->id), 'mod_anonforum');
+    $button = $button->to_html(PORTFOLIO_ADD_FULL_FORM, get_string('exportdiscussion', 'mod_anonforum'));
     $buttonextraclass = '';
     if (empty($button)) {
         // no portfolio plugin available.
@@ -181,42 +199,42 @@ if (!empty($CFG->enableportfolios) && has_capability('mod/forum:exportdiscussion
 
 // groups selector not needed here
 echo '<div class="discussioncontrol displaymode">';
-forum_print_mode_form($discussion->id, $displaymode);
+anonforum_print_mode_form($discussion->id, $displaymode);
 echo "</div>";
 
-if ($forum->type != 'single'
-            && has_capability('mod/forum:movediscussions', $modcontext)) {
+if ($anonforum->type != 'single'
+            && has_capability('mod/anonforum:movediscussions', $modcontext)) {
 
     echo '<div class="discussioncontrol movediscussion">';
-    // Popup menu to move discussions to other forums. The discussion in a
-    // single discussion forum can't be moved.
+    // Popup menu to move discussions to other anonymous forums. The discussion in a
+    // single discussion anonymous forum can't be moved.
     $modinfo = get_fast_modinfo($course);
-    if (isset($modinfo->instances['forum'])) {
-        $forummenu = array();
-        // Check forum types and eliminate simple discussions.
-        $forumcheck = $DB->get_records('forum', array('course' => $course->id),'', 'id, type');
-        foreach ($modinfo->instances['forum'] as $forumcm) {
-            if (!$forumcm->uservisible || !has_capability('mod/forum:startdiscussion',
-                context_module::instance($forumcm->id))) {
+    if (isset($modinfo->instances['anonforum'])) {
+        $anonforummenu = array();
+        // Check anonymous forum types and eliminate simple discussions.
+        $anonforumcheck = $DB->get_records('anonforum', array('course' => $course->id),'', 'id, type');
+        foreach ($modinfo->instances['anonforum'] as $anonforumcm) {
+            if (!$anonforumcm->uservisible || !has_capability('mod/anonforum:startdiscussion',
+                context_module::instance($anonforumcm->id))) {
                 continue;
             }
-            $section = $forumcm->sectionnum;
+            $section = $anonforumcm->sectionnum;
             $sectionname = get_section_name($course, $section);
-            if (empty($forummenu[$section])) {
-                $forummenu[$section] = array($sectionname => array());
+            if (empty($anonforummenu[$section])) {
+                $anonforummenu[$section] = array($sectionname => array());
             }
-            $forumidcompare = $forumcm->instance != $forum->id;
-            $forumtypecheck = $forumcheck[$forumcm->instance]->type !== 'single';
-            if ($forumidcompare and $forumtypecheck) {
-                $url = "/mod/forum/discuss.php?d=$discussion->id&move=$forumcm->instance&sesskey=".sesskey();
-                $forummenu[$section][$sectionname][$url] = format_string($forumcm->name);
+            $anonforumidcompare = $anonforumcm->instance != $anonforum->id;
+            $anonforumtypecheck = $anonforumcheck[$anonforumcm->instance]->type !== 'single';
+            if ($anonforumidcompare and $anonforumtypecheck) {
+                $url = "/mod/anonforum/discuss.php?d=$discussion->id&move=$anonforumcm->instance&sesskey=".sesskey();
+                $anonforummenu[$section][$sectionname][$url] = format_string($anonforumcm->name);
             }
         }
-        if (!empty($forummenu)) {
+        if (!empty($anonforummenu)) {
             echo '<div class="movediscussionoption">';
-            $select = new url_select($forummenu, '',
-                    array(''=>get_string("movethisdiscussionto", "forum")),
-                    'forummenu', get_string('move'));
+            $select = new url_select($anonforummenu, '',
+                    array(''=>get_string("movethisdiscussionto", "anonforum")),
+                    'anonforummenu', get_string('move'));
             echo $OUTPUT->render($select);
             echo "</div>";
         }
@@ -226,24 +244,24 @@ if ($forum->type != 'single'
 echo '<div class="clearfloat">&nbsp;</div>';
 echo "</div>";
 
-if (!empty($forum->blockafter) && !empty($forum->blockperiod)) {
+if (!empty($anonforum->blockafter) && !empty($anonforum->blockperiod)) {
     $a = new stdClass();
-    $a->blockafter  = $forum->blockafter;
-    $a->blockperiod = get_string('secondstotime'.$forum->blockperiod);
-    echo $OUTPUT->notification(get_string('thisforumisthrottled','forum',$a));
+    $a->blockafter  = $anonforum->blockafter;
+    $a->blockperiod = get_string('secondstotime'.$anonforum->blockperiod);
+    echo $OUTPUT->notification(get_string('thisanonforumisthrottled','anonforum',$a));
 }
 
-if ($forum->type == 'qanda' && !has_capability('mod/forum:viewqandawithoutposting', $modcontext) &&
-            !forum_user_has_posted($forum->id,$discussion->id,$USER->id)) {
-    echo $OUTPUT->notification(get_string('qandanotify','forum'));
+if ($anonforum->type == 'qanda' && !has_capability('mod/anonforum:viewqandawithoutposting', $modcontext) &&
+            !anonforum_user_has_posted($anonforum->id,$discussion->id,$USER->id)) {
+    echo $OUTPUT->notification(get_string('qandanotify','anonforum'));
 }
 
 if ($move == -1 and confirm_sesskey()) {
-    echo $OUTPUT->notification(get_string('discussionmoved', 'forum', format_string($forum->name,true)));
+    echo $OUTPUT->notification(get_string('discussionmoved', 'anonforum', format_string($anonforum->name,true)));
 }
 
-$canrate = has_capability('mod/forum:rate', $modcontext);
-forum_print_discussion($course, $cm, $forum, $discussion, $post, $displaymode, $canreply, $canrate);
+$canrate = has_capability('mod/anonforum:rate', $modcontext);
+anonforum_print_discussion($course, $cm, $anonforum, $discussion, $post, $displaymode, $canreply, $canrate);
 
 echo $OUTPUT->footer();
 

@@ -18,13 +18,13 @@
 /**
  * Display user activity reports for a course
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once($CFG->dirroot.'/mod/forum/lib.php');
+require_once($CFG->dirroot.'/mod/anonforum/lib.php');
 require_once($CFG->dirroot.'/rating/lib.php');
 
 $courseid  = optional_param('course', null, PARAM_INT); // Limit the posts to just this course
@@ -44,7 +44,7 @@ $discussionsonly = ($mode !== 'posts');
 $isspecificcourse = !is_null($courseid);
 $iscurrentuser = ($USER->id == $userid);
 
-$url = new moodle_url('/mod/forum/user.php', array('id' => $userid));
+$url = new moodle_url('/mod/anonforum/user.php', array('id' => $userid));
 if ($isspecificcourse) {
     $url->param('course', $courseid);
 }
@@ -62,7 +62,7 @@ if ($perpage != 5) {
     $url->param('perpage', $perpage);
 }
 
-add_to_log(($isspecificcourse)?$courseid:SITEID, "forum", "user report", 'user.php?'.$url->get_query_string(), $userid);
+add_to_log(($isspecificcourse)?$courseid:SITEID, "anonforum", "user report", 'user.php?'.$url->get_query_string(), $userid);
 
 $user = $DB->get_record("user", array("id" => $userid), '*', MUST_EXIST);
 $usercontext = context_user::instance($user->id, MUST_EXIST);
@@ -113,12 +113,12 @@ if ($isspecificcourse) {
     $PAGE->set_context(context_system::instance());
 
     // Now we need to get all of the courses to search.
-    // All courses where the user has posted within a forum will be returned.
-    $courses = forum_get_courses_user_posted_in($user, $discussionsonly);
+    // All courses where the user has posted within a anonymous forum will be returned.
+    $courses = anonforum_get_courses_user_posted_in($user, $discussionsonly);
 }
 
 // Get the posts by the requested user that the current user can access.
-$result = forum_get_posts_by_user($user, $courses, $isspecificcourse, $discussionsonly, ($page * $perpage), $perpage);
+$result = anonforum_get_posts_by_user($user, $courses, $isspecificcourse, $discussionsonly, ($page * $perpage), $perpage);
 
 // Check whether there are not posts to display.
 if (empty($result->posts)) {
@@ -153,13 +153,13 @@ if (empty($result->posts)) {
     }
 
     // Prepare the page title
-    $pagetitle = get_string('noposts', 'mod_forum');
+    $pagetitle = get_string('noposts', 'mod_anonforum');
 
     // Get the page heading
     if ($isspecificcourse) {
         $pageheading = format_string($course->shortname, true, array('context' => $coursecontext));
     } else {
-        $pageheading = get_string('pluginname', 'mod_forum');
+        $pageheading = get_string('pluginname', 'mod_anonforum');
     }
 
     // Next we need to set up the loading of the navigation and choose a message
@@ -168,23 +168,23 @@ if (empty($result->posts)) {
         // No need to extend the navigation it happens automatically for the
         // current user.
         if ($discussionsonly) {
-            $notification = get_string('nodiscussionsstartedbyyou', 'forum');
+            $notification = get_string('nodiscussionsstartedbyyou', 'anonforum');
         } else {
-            $notification = get_string('nopostsmadebyyou', 'forum');
+            $notification = get_string('nopostsmadebyyou', 'anonforum');
         }
     } else if ($canviewuser) {
         $PAGE->navigation->extend_for_user($user);
         $PAGE->navigation->set_userid_for_parent_checks($user->id); // see MDL-25805 for reasons and for full commit reference for reversal when fixed.
         $fullname = fullname($user);
         if ($discussionsonly) {
-            $notification = get_string('nodiscussionsstartedby', 'forum', $fullname);
+            $notification = get_string('nodiscussionsstartedby', 'anonforum', $fullname);
         } else {
-            $notification = get_string('nopostsmadebyuser', 'forum', $fullname);
+            $notification = get_string('nopostsmadebyuser', 'anonforum', $fullname);
         }
     } else {
         // Don't extend the navigation it would be giving out information that
         // the current uesr doesn't have access to.
-        $notification = get_string('cannotviewusersposts', 'forum');
+        $notification = get_string('cannotviewusersposts', 'anonforum');
         if ($isspecificcourse) {
             $url = new moodle_url('/course/view.php', array('id' => $courseid));
         } else {
@@ -214,39 +214,39 @@ $discussions = array();
 foreach ($result->posts as $post) {
     $discussions[] = $post->discussion;
 }
-$discussions = $DB->get_records_list('forum_discussions', 'id', array_unique($discussions));
+$discussions = $DB->get_records_list('anonforum_discussions', 'id', array_unique($discussions));
 
 //todo Rather than retrieving the ratings for each post individually it would be nice to do them in groups
-//however this requires creating arrays of posts with each array containing all of the posts from a particular forum,
+//however this requires creating arrays of posts with each array containing all of the posts from a particular anonymous forum,
 //retrieving the ratings then reassembling them all back into a single array sorted by post.modified (descending)
 $rm = new rating_manager();
 $ratingoptions = new stdClass;
-$ratingoptions->component = 'mod_forum';
+$ratingoptions->component = 'mod_anonforum';
 $ratingoptions->ratingarea = 'post';
 foreach ($result->posts as $post) {
-    if (!isset($result->forums[$post->forum]) || !isset($discussions[$post->discussion])) {
+    if (!isset($result->anonforums[$post->anonforum]) || !isset($discussions[$post->discussion])) {
         // Something very VERY dodgy has happened if we end up here
         continue;
     }
-    $forum = $result->forums[$post->forum];
-    $cm = $forum->cm;
+    $anonforum = $result->anonforums[$post->anonforum];
+    $cm = $anonforum->cm;
     $discussion = $discussions[$post->discussion];
     $course = $result->courses[$discussion->course];
 
-    $forumurl = new moodle_url('/mod/forum/view.php', array('id' => $cm->id));
-    $discussionurl = new moodle_url('/mod/forum/discuss.php', array('d' => $post->discussion));
+    $anonforumurl = new moodle_url('/mod/anonforum/view.php', array('id' => $cm->id));
+    $discussionurl = new moodle_url('/mod/anonforum/discuss.php', array('d' => $post->discussion));
 
     // load ratings
-    if ($forum->assessed != RATING_AGGREGATE_NONE) {
+    if ($anonforum->assessed != RATING_AGGREGATE_NONE) {
         $ratingoptions->context = $cm->context;
         $ratingoptions->items = array($post);
-        $ratingoptions->aggregate = $forum->assessed;//the aggregation method
-        $ratingoptions->scaleid = $forum->scale;
+        $ratingoptions->aggregate = $anonforum->assessed;//the aggregation method
+        $ratingoptions->scaleid = $anonforum->scale;
         $ratingoptions->userid = $user->id;
-        $ratingoptions->assesstimestart = $forum->assesstimestart;
-        $ratingoptions->assesstimefinish = $forum->assesstimefinish;
-        if ($forum->type == 'single' or !$post->discussion) {
-            $ratingoptions->returnurl = $forumurl;
+        $ratingoptions->assesstimestart = $anonforum->assesstimestart;
+        $ratingoptions->assesstimefinish = $anonforum->assesstimefinish;
+        if ($anonforum->type == 'single' or !$post->discussion) {
+            $ratingoptions->returnurl = $anonforumurl;
         } else {
             $ratingoptions->returnurl = $discussionurl;
         }
@@ -257,17 +257,17 @@ foreach ($result->posts as $post) {
     }
 
     $courseshortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
-    $forumname = format_string($forum->name, true, array('context' => $cm->context));
+    $anonforumname = format_string($anonforum->name, true, array('context' => $cm->context));
 
     $fullsubjects = array();
     if (!$isspecificcourse && !$hasparentaccess) {
         $fullsubjects[] = html_writer::link(new moodle_url('/course/view.php', array('id' => $course->id)), $courseshortname);
-        $fullsubjects[] = html_writer::link($forumurl, $forumname);
+        $fullsubjects[] = html_writer::link($anonforumurl, $anonforumname);
     } else {
         $fullsubjects[] = html_writer::tag('span', $courseshortname);
-        $fullsubjects[] = html_writer::tag('span', $forumname);
+        $fullsubjects[] = html_writer::tag('span', $anonforumname);
     }
-    if ($forum->type != 'single') {
+    if ($anonforum->type != 'single') {
         $discussionname = format_string($discussion->name, true, array('context' => $cm->context));
         if (!$isspecificcourse && !$hasparentaccess) {
             $fullsubjects[] .= html_writer::link($discussionurl, $discussionname);
@@ -277,7 +277,7 @@ foreach ($result->posts as $post) {
         if ($post->parent != 0) {
             $postname = format_string($post->subject, true, array('context' => $cm->context));
             if (!$isspecificcourse && !$hasparentaccess) {
-                $fullsubjects[] .= html_writer::link(new moodle_url('/mod/forum/discuss.php', array('d' => $post->discussion, 'parent' => $post->id)), $postname);
+                $fullsubjects[] .= html_writer::link(new moodle_url('/mod/anonforum/discuss.php', array('d' => $post->discussion, 'parent' => $post->id)), $postname);
             } else {
                 $fullsubjects[] .= html_writer::tag('span', $postname);
             }
@@ -288,17 +288,17 @@ foreach ($result->posts as $post) {
     // we've added will be lost.
     $post->subjectnoformat = true;
     $discussionurl->set_anchor('p'.$post->id);
-    $fulllink = html_writer::link($discussionurl, get_string("postincontext", "forum"));
+    $fulllink = html_writer::link($discussionurl, get_string("postincontext", "anonforum"));
 
-    $postoutput[] = forum_print_post($post, $discussion, $forum, $cm, $course, false, false, false, $fulllink, '', null, true, null, true);
+    $postoutput[] = anonforum_print_post($post, $discussion, $anonforum, $cm, $course, false, false, false, $fulllink, '', null, true, null, true);
 }
 
 $userfullname = fullname($user);
 
 if ($discussionsonly) {
-    $inpageheading = get_string('discussionsstartedby', 'mod_forum', $userfullname);
+    $inpageheading = get_string('discussionsstartedby', 'mod_anonforum', $userfullname);
 } else {
-    $inpageheading = get_string('postsmadebyuser', 'mod_forum', $userfullname);
+    $inpageheading = get_string('postsmadebyuser', 'mod_anonforum', $userfullname);
 }
 if ($isspecificcourse) {
     $a = new stdClass;
@@ -306,9 +306,9 @@ if ($isspecificcourse) {
     $a->coursename = format_string($course->shortname, true, array('context' => $coursecontext));
     $pageheading = $a->coursename;
     if ($discussionsonly) {
-        $pagetitle = get_string('discussionsstartedbyuserincourse', 'mod_forum', $a);
+        $pagetitle = get_string('discussionsstartedbyuserincourse', 'mod_anonforum', $a);
     } else {
-        $pagetitle = get_string('postsmadebyuserincourse', 'mod_forum', $a);
+        $pagetitle = get_string('postsmadebyuserincourse', 'mod_anonforum', $a);
     }
 } else {
     $pagetitle = $inpageheading;
@@ -332,9 +332,9 @@ if (!empty($postoutput)) {
     }
     echo $OUTPUT->paging_bar($result->totalcount, $page, $perpage, $url);
 } else if ($discussionsonly) {
-    echo $OUTPUT->heading(get_string('nodiscussionsstartedby', 'forum', $userfullname));
+    echo $OUTPUT->heading(get_string('nodiscussionsstartedby', 'anonforum', $userfullname));
 } else {
-    echo $OUTPUT->heading(get_string('noposts', 'forum'));
+    echo $OUTPUT->heading(get_string('noposts', 'anonforum'));
 }
 
 echo html_writer::end_tag('div');

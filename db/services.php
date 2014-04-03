@@ -16,32 +16,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Forum external functions and service definitions.
+ * Anonymous forum external functions and service definitions.
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @copyright  2012 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 $functions = array(
 
-    'mod_forum_get_forums_by_courses' => array(
-        'classname' => 'mod_forum_external',
-        'methodname' => 'get_forums_by_courses',
-        'classpath' => 'mod/forum/externallib.php',
-        'description' => 'Returns a list of forum instances in a provided set of courses, if
-            no courses are provided then all the forum instances the user has access to will be
+    'mod_anonforum_get_anonforums_by_courses' => array(
+        'classname' => 'mod_anonforum_external',
+        'methodname' => 'get_anonforums_by_courses',
+        'classpath' => 'mod/anonforum/externallib.php',
+        'description' => 'Returns a list of anonymous forum instances in a provided set of courses, if
+            no courses are provided then all the anonymous forum instances the user has access to will be
             returned.',
         'type' => 'read',
-        'capabilities' => 'mod/forum:viewdiscussion'
+        'capabilities' => 'mod/anonforum:viewdiscussion'
     ),
 
-    'mod_forum_get_forum_discussions' => array(
-        'classname' => 'mod_forum_external',
-        'methodname' => 'get_forum_discussions',
-        'classpath' => 'mod/forum/externallib.php',
-        'description' => 'Returns a list of forum discussions contained within a given set of forums.',
+    'mod_anonforum_get_anonforum_discussions' => array(
+        'classname' => 'mod_anonforum_external',
+        'methodname' => 'get_anonforum_discussions',
+        'classpath' => 'mod/anonforum/externallib.php',
+        'description' => 'Returns a list of forum discussions contained within a given set of anonymous forums.',
         'type' => 'read',
-        'capabilities' => 'mod/forum:viewdiscussion, mod/forum:viewqandawithoutposting'
+        'capabilities' => 'mod/anonforum:viewdiscussion, mod/anonforum:viewqandawithoutposting'
     )
 );

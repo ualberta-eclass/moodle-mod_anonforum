@@ -1,4 +1,4 @@
-@mod @mod_forum
+@mod @mod_anonforum
 Feature: Add forum activities and discussions
   In order to discuss topics with other users
   As a teacher

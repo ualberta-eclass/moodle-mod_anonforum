@@ -16,20 +16,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/course/lib.php');
-require_once($CFG->dirroot . '/mod/forum/lib.php');
+require_once($CFG->dirroot . '/mod/anonforum/lib.php');
 require_once($CFG->libdir . '/rsslib.php');
 
 $id = optional_param('id', 0, PARAM_INT);                   // Course id
-$subscribe = optional_param('subscribe', null, PARAM_INT);  // Subscribe/Unsubscribe all forums
+$subscribe = optional_param('subscribe', null, PARAM_INT);  // Subscribe/Unsubscribe all anonymous forums
 
-$url = new moodle_url('/mod/forum/index.php', array('id'=>$id));
+$url = new moodle_url('/mod/anonforum/index.php', array('id'=>$id));
 if ($subscribe !== null) {
     require_sesskey();
     $url->param('subscribe', $subscribe);
@@ -51,30 +51,30 @@ $coursecontext = context_course::instance($course->id);
 
 unset($SESSION->fromdiscussion);
 
-add_to_log($course->id, 'forum', 'view forums', "index.php?id=$course->id");
+add_to_log($course->id, 'anonforum', 'view anonforums', "index.php?id=$course->id");
 
-$strforums       = get_string('forums', 'forum');
-$strforum        = get_string('forum', 'forum');
+$stranonforums       = get_string('anonforums', 'anonforum');
+$stranonforum        = get_string('anonforum', 'anonforum');
 $strdescription  = get_string('description');
-$strdiscussions  = get_string('discussions', 'forum');
-$strsubscribed   = get_string('subscribed', 'forum');
-$strunreadposts  = get_string('unreadposts', 'forum');
-$strtracking     = get_string('tracking', 'forum');
-$strmarkallread  = get_string('markallread', 'forum');
-$strtrackforum   = get_string('trackforum', 'forum');
-$strnotrackforum = get_string('notrackforum', 'forum');
-$strsubscribe    = get_string('subscribe', 'forum');
-$strunsubscribe  = get_string('unsubscribe', 'forum');
+$strdiscussions  = get_string('discussions', 'anonforum');
+$strsubscribed   = get_string('subscribed', 'anonforum');
+$strunreadposts  = get_string('unreadposts', 'anonforum');
+$strtracking     = get_string('tracking', 'anonforum');
+$strmarkallread  = get_string('markallread', 'anonforum');
+$strtrackanonforum   = get_string('trackanonforum', 'anonforum');
+$strnotrackanonforum = get_string('notrackanonforum', 'anonforum');
+$strsubscribe    = get_string('subscribe', 'anonforum');
+$strunsubscribe  = get_string('unsubscribe', 'anonforum');
 $stryes          = get_string('yes');
 $strno           = get_string('no');
 $strrss          = get_string('rss');
 $stremaildigest  = get_string('emaildigest');
 
-$searchform = forum_search_form($course);
+$searchform = anonforum_search_form($course);
 
-// Retrieve the list of forum digest options for later.
-$digestoptions = forum_get_user_digest_options();
-$digestoptions_selector = new single_select(new moodle_url('/mod/forum/maildigest.php',
+// Retrieve the list of anonymous forum digest options for later.
+$digestoptions = anonforum_get_user_digest_options();
+$digestoptions_selector = new single_select(new moodle_url('/mod/anonforum/maildigest.php',
     array(
         'backtoindex' => 1,
     )),
@@ -87,11 +87,11 @@ $digestoptions_selector->method = 'post';
 // Start of the table for General Forums
 
 $generaltable = new html_table();
-$generaltable->head  = array ($strforum, $strdescription, $strdiscussions);
+$generaltable->head  = array ($stranonforum, $strdescription, $strdiscussions);
 $generaltable->align = array ('left', 'left', 'center');
 
-if ($usetracking = forum_tp_can_track_forums()) {
-    $untracked = forum_tp_get_untracked_forums($USER->id, $course->id);
+if ($usetracking = anonforum_tp_can_track_anonforums()) {
+    $untracked = anonforum_tp_get_untracked_anonforums($USER->id, $course->id);
 
     $generaltable->head[] = $strunreadposts;
     $generaltable->align[] = 'center';
@@ -100,20 +100,20 @@ if ($usetracking = forum_tp_can_track_forums()) {
     $generaltable->align[] = 'center';
 }
 
-$subscribed_forums = forum_get_subscribed_forums($course);
+$subscribed_anonforums = anonforum_get_subscribed_anonforums($course);
 
 $can_subscribe = is_enrolled($coursecontext);
 if ($can_subscribe) {
     $generaltable->head[] = $strsubscribed;
     $generaltable->align[] = 'center';
 
-    $generaltable->head[] = $stremaildigest . ' ' . $OUTPUT->help_icon('emaildigesttype', 'mod_forum');
+    $generaltable->head[] = $stremaildigest . ' ' . $OUTPUT->help_icon('emaildigesttype', 'mod_anonforum');
     $generaltable->align[] = 'center';
 }
 
 if ($show_rss = (($can_subscribe || $course->id == SITEID) &&
-                 isset($CFG->enablerssfeeds) && isset($CFG->forum_enablerssfeeds) &&
-                 $CFG->enablerssfeeds && $CFG->forum_enablerssfeeds)) {
+                 isset($CFG->enablerssfeeds) && isset($CFG->anonforum_enablerssfeeds) &&
+                 $CFG->enablerssfeeds && $CFG->anonforum_enablerssfeeds)) {
     $generaltable->head[] = $strrss;
     $generaltable->align[] = 'center';
 }
@@ -122,46 +122,46 @@ $usesections = course_format_uses_sections($course->format);
 
 $table = new html_table();
 
-// Parse and organise all the forums.  Most forums are course modules but
-// some special ones are not.  These get placed in the general forums
-// category with the forums in section 0.
+// Parse and organise all the anonforums.  Most anonymous forums are course modules but
+// some special ones are not.  These get placed in the general anonymous forums
+// category with the anonymous forums in section 0.
 
-$forums = $DB->get_records_sql("
+$anonforums = $DB->get_records_sql("
     SELECT f.*,
            d.maildigest
-      FROM {forum} f
- LEFT JOIN {forum_digests} d ON d.forum = f.id AND d.userid = ?
+      FROM {anonforum} f
+ LEFT JOIN {anonforum_digests} d ON d.anonforum = f.id AND d.userid = ?
      WHERE f.course = ?
     ", array($USER->id, $course->id));
 
-$generalforums  = array();
-$learningforums = array();
+$generalanonforums  = array();
+$learninganonforums = array();
 $modinfo = get_fast_modinfo($course);
 
-foreach ($modinfo->get_instances_of('forum') as $forumid=>$cm) {
-    if (!$cm->uservisible or !isset($forums[$forumid])) {
+foreach ($modinfo->get_instances_of('anonforum') as $anonforumid=>$cm) {
+    if (!$cm->uservisible or !isset($anonforums[$anonforumid])) {
         continue;
     }
 
-    $forum = $forums[$forumid];
+    $anonforum = $anonforums[$anonforumid];
 
     if (!$context = context_module::instance($cm->id, IGNORE_MISSING)) {
         continue;   // Shouldn't happen
     }
 
-    if (!has_capability('mod/forum:viewdiscussion', $context)) {
+    if (!has_capability('mod/anonforum:viewdiscussion', $context)) {
         continue;
     }
 
     // fill two type array - order in modinfo is the same as in course
-    if ($forum->type == 'news' or $forum->type == 'social') {
-        $generalforums[$forum->id] = $forum;
+    if ($anonforum->type == 'news' or $anonforum->type == 'social') {
+        $generalanonforums[$anonforum->id] = $anonforum;
 
     } else if ($course->id == SITEID or empty($cm->sectionnum)) {
-        $generalforums[$forum->id] = $forum;
+        $generalanonforums[$anonforum->id] = $anonforum;
 
     } else {
-        $learningforums[$forum->id] = $forum;
+        $learninganonforums[$anonforum->id] = $anonforum;
     }
 }
 
@@ -169,125 +169,125 @@ foreach ($modinfo->get_instances_of('forum') as $forumid=>$cm) {
 if (!is_null($subscribe)) {
     if (isguestuser() or !$can_subscribe) {
         // there should not be any links leading to this place, just redirect
-        redirect(new moodle_url('/mod/forum/index.php', array('id' => $id)), get_string('subscribeenrolledonly', 'forum'));
+        redirect(new moodle_url('/mod/anonforum/index.php', array('id' => $id)), get_string('subscribeenrolledonly', 'anonforum'));
     }
     // Can proceed now, the user is not guest and is enrolled
-    foreach ($modinfo->get_instances_of('forum') as $forumid=>$cm) {
-        $forum = $forums[$forumid];
+    foreach ($modinfo->get_instances_of('anonforum') as $anonforumid=>$cm) {
+        $anonforum = $anonforums[$anonforumid];
         $modcontext = context_module::instance($cm->id);
         $cansub = false;
 
-        if (has_capability('mod/forum:viewdiscussion', $modcontext)) {
+        if (has_capability('mod/anonforum:viewdiscussion', $modcontext)) {
             $cansub = true;
         }
         if ($cansub && $cm->visible == 0 &&
-            !has_capability('mod/forum:managesubscriptions', $modcontext))
+            !has_capability('mod/anonforum:managesubscriptions', $modcontext))
         {
             $cansub = false;
         }
-        if (!forum_is_forcesubscribed($forum)) {
-            $subscribed = forum_is_subscribed($USER->id, $forum);
-            if ((has_capability('moodle/course:manageactivities', $coursecontext, $USER->id) || $forum->forcesubscribe != FORUM_DISALLOWSUBSCRIBE) && $subscribe && !$subscribed && $cansub) {
-                forum_subscribe($USER->id, $forumid);
+        if (!anonforum_is_forcesubscribed($anonforum)) {
+            $subscribed = anonforum_is_subscribed($USER->id, $anonforum);
+            if ((has_capability('moodle/course:manageactivities', $coursecontext, $USER->id) || $anonforum->forcesubscribe != ANONFORUM_DISALLOWSUBSCRIBE) && $subscribe && !$subscribed && $cansub) {
+                anonforum_subscribe($USER->id, $anonforumid);
             } else if (!$subscribe && $subscribed) {
-                forum_unsubscribe($USER->id, $forumid);
+                anonforum_unsubscribe($USER->id, $anonforumid);
             }
         }
     }
-    $returnto = forum_go_back_to("index.php?id=$course->id");
+    $returnto = anonforum_go_back_to("index.php?id=$course->id");
     $shortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
     if ($subscribe) {
-        add_to_log($course->id, 'forum', 'subscribeall', "index.php?id=$course->id", $course->id);
-        redirect($returnto, get_string('nowallsubscribed', 'forum', $shortname), 1);
+        add_to_log($course->id, 'anonforum', 'subscribeall', "index.php?id=$course->id", $course->id);
+        redirect($returnto, get_string('nowallsubscribed', 'anonforum', $shortname), 1);
     } else {
-        add_to_log($course->id, 'forum', 'unsubscribeall', "index.php?id=$course->id", $course->id);
-        redirect($returnto, get_string('nowallunsubscribed', 'forum', $shortname), 1);
+        add_to_log($course->id, 'anonforum', 'unsubscribeall', "index.php?id=$course->id", $course->id);
+        redirect($returnto, get_string('nowallunsubscribed', 'anonforum', $shortname), 1);
     }
 }
 
-/// First, let's process the general forums and build up a display
+/// First, let's process the general anonymous forums and build up a display
 
-if ($generalforums) {
-    foreach ($generalforums as $forum) {
-        $cm      = $modinfo->instances['forum'][$forum->id];
+if ($generalanonforums) {
+    foreach ($generalanonforums as $anonforum) {
+        $cm      = $modinfo->instances['anonforum'][$anonforum->id];
         $context = context_module::instance($cm->id);
 
-        $count = forum_count_discussions($forum, $cm, $course);
+        $count = anonforum_count_discussions($anonforum, $cm, $course);
 
         if ($usetracking) {
-            if ($forum->trackingtype == FORUM_TRACKING_OFF) {
+            if ($anonforum->trackingtype == ANONFORUM_TRACKING_OFF) {
                 $unreadlink  = '-';
                 $trackedlink = '-';
 
             } else {
-                if (isset($untracked[$forum->id])) {
+                if (isset($untracked[$anonforum->id])) {
                         $unreadlink  = '-';
-                } else if ($unread = forum_tp_count_forum_unread_posts($cm, $course)) {
-                        $unreadlink = '<span class="unread"><a href="view.php?f='.$forum->id.'">'.$unread.'</a>';
+                } else if ($unread = anonforum_tp_count_anonforum_unread_posts($cm, $course)) {
+                        $unreadlink = '<span class="unread"><a href="view.php?f='.$anonforum->id.'">'.$unread.'</a>';
                     $unreadlink .= '<a title="'.$strmarkallread.'" href="markposts.php?f='.
-                                   $forum->id.'&amp;mark=read"><img src="'.$OUTPUT->pix_url('t/markasread') . '" alt="'.$strmarkallread.'" class="iconsmall" /></a></span>';
+                                   $anonforum->id.'&amp;mark=read"><img src="'.$OUTPUT->pix_url('t/markasread') . '" alt="'.$strmarkallread.'" class="iconsmall" /></a></span>';
                 } else {
                     $unreadlink = '<span class="read">0</span>';
                 }
 
-                if (($forum->trackingtype == FORUM_TRACKING_FORCED) && ($CFG->forum_allowforcedreadtracking)) {
+                if (($anonforum->trackingtype == ANONFORUM_TRACKING_FORCED) && ($CFG->anonforum_allowforcedreadtracking)) {
                     $trackedlink = $stryes;
-                } else if ($forum->trackingtype === FORUM_TRACKING_OFF || ($USER->trackforums == 0)) {
+                } else if ($anonforum->trackingtype === ANONFORUM_TRACKING_OFF || ($USER->trackforums == 0)) {
                     $trackedlink = '-';
                 } else {
-                    $aurl = new moodle_url('/mod/forum/settracking.php', array('id'=>$forum->id));
-                    if (!isset($untracked[$forum->id])) {
-                        $trackedlink = $OUTPUT->single_button($aurl, $stryes, 'post', array('title'=>$strnotrackforum));
+                    $aurl = new moodle_url('/mod/anonforum/settracking.php', array('id'=>$anonforum->id));
+                    if (!isset($untracked[$anonforum->id])) {
+                        $trackedlink = $OUTPUT->single_button($aurl, $stryes, 'post', array('title'=>$strnotrackanonforum));
                     } else {
-                        $trackedlink = $OUTPUT->single_button($aurl, $strno, 'post', array('title'=>$strtrackforum));
+                        $trackedlink = $OUTPUT->single_button($aurl, $strno, 'post', array('title'=>$strtrackanonforum));
                     }
                 }
             }
         }
 
-        $forum->intro = shorten_text(format_module_intro('forum', $forum, $cm->id), $CFG->forum_shortpost);
-        $forumname = format_string($forum->name, true);
+        $anonforum->intro = shorten_text(format_module_intro('anonforum', $anonforum, $cm->id), $CFG->anonforum_shortpost);
+        $anonforumname = format_string($anonforum->name, true);
 
         if ($cm->visible) {
             $style = '';
         } else {
             $style = 'class="dimmed"';
         }
-        $forumlink = "<a href=\"view.php?f=$forum->id\" $style>".format_string($forum->name,true)."</a>";
-        $discussionlink = "<a href=\"view.php?f=$forum->id\" $style>".$count."</a>";
+        $anonforumlink = "<a href=\"view.php?f=$anonforum->id\" $style>".format_string($anonforum->name,true)."</a>";
+        $discussionlink = "<a href=\"view.php?f=$anonforum->id\" $style>".$count."</a>";
 
-        $row = array ($forumlink, $forum->intro, $discussionlink);
+        $row = array ($anonforumlink, $anonforum->intro, $discussionlink);
         if ($usetracking) {
             $row[] = $unreadlink;
             $row[] = $trackedlink;    // Tracking.
         }
 
         if ($can_subscribe) {
-            if ($forum->forcesubscribe != FORUM_DISALLOWSUBSCRIBE) {
-                $row[] = forum_get_subscribe_link($forum, $context, array('subscribed' => $stryes,
+            if ($anonforum->forcesubscribe != ANONFORUM_DISALLOWSUBSCRIBE) {
+                $row[] = anonforum_get_subscribe_link($anonforum, $context, array('subscribed' => $stryes,
                         'unsubscribed' => $strno, 'forcesubscribed' => $stryes,
-                        'cantsubscribe' => '-'), false, false, true, $subscribed_forums);
+                        'cantsubscribe' => '-'), false, false, true, $subscribed_anonforums);
             } else {
                 $row[] = '-';
             }
 
-            $digestoptions_selector->url->param('id', $forum->id);
-            if ($forum->maildigest === null) {
+            $digestoptions_selector->url->param('id', $anonforum->id);
+            if ($anonforum->maildigest === null) {
                 $digestoptions_selector->selected = -1;
             } else {
-                $digestoptions_selector->selected = $forum->maildigest;
+                $digestoptions_selector->selected = $anonforum->maildigest;
             }
             $row[] = $OUTPUT->render($digestoptions_selector);
         }
 
-        //If this forum has RSS activated, calculate it
+        //If this anonymous forum has RSS activated, calculate it
         if ($show_rss) {
-            if ($forum->rsstype and $forum->rssarticles) {
+            if ($anonforum->rsstype and $anonforum->rssarticles) {
                 //Calculate the tooltip text
-                if ($forum->rsstype == 1) {
-                    $tooltiptext = get_string('rsssubscriberssdiscussions', 'forum');
+                if ($anonforum->rsstype == 1) {
+                    $tooltiptext = get_string('rsssubscriberssdiscussions', 'anonforum');
                 } else {
-                    $tooltiptext = get_string('rsssubscriberssposts', 'forum');
+                    $tooltiptext = get_string('rsssubscriberssposts', 'anonforum');
                 }
 
                 if (!isloggedin() && $course->id == SITEID) {
@@ -296,7 +296,7 @@ if ($generalforums) {
                     $userid = $USER->id;
                 }
                 //Get html code for RSS link
-                $row[] = rss_get_link($context->id, $userid, 'mod_forum', $forum->id, $tooltiptext);
+                $row[] = rss_get_link($context->id, $userid, 'mod_anonforum', $anonforum->id, $tooltiptext);
             } else {
                 $row[] = '&nbsp;';
             }
@@ -309,7 +309,7 @@ if ($generalforums) {
 
 // Start of the table for Learning Forums
 $learningtable = new html_table();
-$learningtable->head  = array ($strforum, $strdescription, $strdiscussions);
+$learningtable->head  = array ($stranonforum, $strdescription, $strdiscussions);
 $learningtable->align = array ('left', 'left', 'center');
 
 if ($usetracking) {
@@ -324,20 +324,20 @@ if ($can_subscribe) {
     $learningtable->head[] = $strsubscribed;
     $learningtable->align[] = 'center';
 
-    $learningtable->head[] = $stremaildigest . ' ' . $OUTPUT->help_icon('emaildigesttype', 'mod_forum');
+    $learningtable->head[] = $stremaildigest . ' ' . $OUTPUT->help_icon('emaildigesttype', 'mod_anonforum');
     $learningtable->align[] = 'center';
 }
 
 if ($show_rss = (($can_subscribe || $course->id == SITEID) &&
-                 isset($CFG->enablerssfeeds) && isset($CFG->forum_enablerssfeeds) &&
-                 $CFG->enablerssfeeds && $CFG->forum_enablerssfeeds)) {
+                 isset($CFG->enablerssfeeds) && isset($CFG->anonforum_enablerssfeeds) &&
+                 $CFG->enablerssfeeds && $CFG->anonforum_enablerssfeeds)) {
     $learningtable->head[] = $strrss;
     $learningtable->align[] = 'center';
 }
 
-/// Now let's process the learning forums
+/// Now let's process the learning anonymous forums
 
-if ($course->id != SITEID) {    // Only real courses have learning forums
+if ($course->id != SITEID) {    // Only real courses have learning anonforums
     // 'format_.'$course->format only applicable when not SITEID (format_site is not a format)
     $strsectionname  = get_string('sectionname', 'format_'.$course->format);
     // Add extra field for section number, at the front
@@ -345,46 +345,46 @@ if ($course->id != SITEID) {    // Only real courses have learning forums
     array_unshift($learningtable->align, 'center');
 
 
-    if ($learningforums) {
+    if ($learninganonforums) {
         $currentsection = '';
-            foreach ($learningforums as $forum) {
-            $cm      = $modinfo->instances['forum'][$forum->id];
+            foreach ($learninganonforums as $anonforum) {
+            $cm      = $modinfo->instances['anonforum'][$anonforum->id];
             $context = context_module::instance($cm->id);
 
-            $count = forum_count_discussions($forum, $cm, $course);
+            $count = anonforum_count_discussions($anonforum, $cm, $course);
 
             if ($usetracking) {
-                if ($forum->trackingtype == FORUM_TRACKING_OFF) {
+                if ($anonforum->trackingtype == ANONFORUM_TRACKING_OFF) {
                     $unreadlink  = '-';
                     $trackedlink = '-';
 
                 } else {
-                    if (isset($untracked[$forum->id])) {
+                    if (isset($untracked[$anonforum->id])) {
                         $unreadlink  = '-';
-                    } else if ($unread = forum_tp_count_forum_unread_posts($cm, $course)) {
-                        $unreadlink = '<span class="unread"><a href="view.php?f='.$forum->id.'">'.$unread.'</a>';
+                    } else if ($unread = anonforum_tp_count_anonforum_unread_posts($cm, $course)) {
+                        $unreadlink = '<span class="unread"><a href="view.php?f='.$anonforum->id.'">'.$unread.'</a>';
                         $unreadlink .= '<a title="'.$strmarkallread.'" href="markposts.php?f='.
-                                       $forum->id.'&amp;mark=read"><img src="'.$OUTPUT->pix_url('t/markasread') . '" alt="'.$strmarkallread.'" class="iconsmall" /></a></span>';
+                                       $anonforum->id.'&amp;mark=read"><img src="'.$OUTPUT->pix_url('t/markasread') . '" alt="'.$strmarkallread.'" class="iconsmall" /></a></span>';
                     } else {
                         $unreadlink = '<span class="read">0</span>';
                     }
 
-                    if (($forum->trackingtype == FORUM_TRACKING_FORCED) && ($CFG->forum_allowforcedreadtracking)) {
+                    if (($anonforum->trackingtype == ANONFORUM_TRACKING_FORCED) && ($CFG->anonforum_allowforcedreadtracking)) {
                         $trackedlink = $stryes;
-                    } else if ($forum->trackingtype === FORUM_TRACKING_OFF || ($USER->trackforums == 0)) {
+                    } else if ($anonforum->trackingtype === ANONFORUM_TRACKING_OFF || ($USER->trackforums == 0)) {
                         $trackedlink = '-';
                     } else {
-                        $aurl = new moodle_url('/mod/forum/settracking.php', array('id'=>$forum->id));
-                        if (!isset($untracked[$forum->id])) {
-                            $trackedlink = $OUTPUT->single_button($aurl, $stryes, 'post', array('title'=>$strnotrackforum));
+                        $aurl = new moodle_url('/mod/anonforum/settracking.php', array('id'=>$anonforum->id));
+                        if (!isset($untracked[$anonforum->id])) {
+                            $trackedlink = $OUTPUT->single_button($aurl, $stryes, 'post', array('title'=>$strnotrackanonforum));
                         } else {
-                            $trackedlink = $OUTPUT->single_button($aurl, $strno, 'post', array('title'=>$strtrackforum));
+                            $trackedlink = $OUTPUT->single_button($aurl, $strno, 'post', array('title'=>$strtrackanonforum));
                         }
                     }
                 }
             }
 
-            $forum->intro = shorten_text(format_module_intro('forum', $forum, $cm->id), $CFG->forum_shortpost);
+            $anonforum->intro = shorten_text(format_module_intro('anonforum', $anonforum, $cm->id), $CFG->anonforum_shortpost);
 
             if ($cm->sectionnum != $currentsection) {
                 $printsection = get_section_name($course, $cm->sectionnum);
@@ -396,51 +396,51 @@ if ($course->id != SITEID) {    // Only real courses have learning forums
                 $printsection = '';
             }
 
-            $forumname = format_string($forum->name,true);
+            $anonforumname = format_string($anonforum->name,true);
 
             if ($cm->visible) {
                 $style = '';
             } else {
                 $style = 'class="dimmed"';
             }
-            $forumlink = "<a href=\"view.php?f=$forum->id\" $style>".format_string($forum->name,true)."</a>";
-            $discussionlink = "<a href=\"view.php?f=$forum->id\" $style>".$count."</a>";
+            $anonforumlink = "<a href=\"view.php?f=$anonforum->id\" $style>".format_string($anonforum->name,true)."</a>";
+            $discussionlink = "<a href=\"view.php?f=$anonforum->id\" $style>".$count."</a>";
 
-            $row = array ($printsection, $forumlink, $forum->intro, $discussionlink);
+            $row = array ($printsection, $anonforumlink, $anonforum->intro, $discussionlink);
             if ($usetracking) {
                 $row[] = $unreadlink;
                 $row[] = $trackedlink;    // Tracking.
             }
 
             if ($can_subscribe) {
-                if ($forum->forcesubscribe != FORUM_DISALLOWSUBSCRIBE) {
-                    $row[] = forum_get_subscribe_link($forum, $context, array('subscribed' => $stryes,
+                if ($anonforum->forcesubscribe != ANONFORUM_DISALLOWSUBSCRIBE) {
+                    $row[] = anonforum_get_subscribe_link($anonforum, $context, array('subscribed' => $stryes,
                         'unsubscribed' => $strno, 'forcesubscribed' => $stryes,
-                        'cantsubscribe' => '-'), false, false, true, $subscribed_forums);
+                        'cantsubscribe' => '-'), false, false, true, $subscribed_anonforums);
                 } else {
                     $row[] = '-';
                 }
 
-                $digestoptions_selector->url->param('id', $forum->id);
-                if ($forum->maildigest === null) {
+                $digestoptions_selector->url->param('id', $anonforum->id);
+                if ($anonforum->maildigest === null) {
                     $digestoptions_selector->selected = -1;
                 } else {
-                    $digestoptions_selector->selected = $forum->maildigest;
+                    $digestoptions_selector->selected = $anonforum->maildigest;
                 }
                 $row[] = $OUTPUT->render($digestoptions_selector);
             }
 
-            //If this forum has RSS activated, calculate it
+            //If this anonymous forum has RSS activated, calculate it
             if ($show_rss) {
-                if ($forum->rsstype and $forum->rssarticles) {
+                if ($anonforum->rsstype and $anonforum->rssarticles) {
                     //Calculate the tolltip text
-                    if ($forum->rsstype == 1) {
-                        $tooltiptext = get_string('rsssubscriberssdiscussions', 'forum');
+                    if ($anonforum->rsstype == 1) {
+                        $tooltiptext = get_string('rsssubscriberssdiscussions', 'anonforum');
                     } else {
-                        $tooltiptext = get_string('rsssubscriberssposts', 'forum');
+                        $tooltiptext = get_string('rsssubscriberssposts', 'anonforum');
                     }
                     //Get html code for RSS link
-                    $row[] = rss_get_link($context->id, $USER->id, 'mod_forum', $forum->id, $tooltiptext);
+                    $row[] = rss_get_link($context->id, $USER->id, 'mod_anonforum', $anonforum->id, $tooltiptext);
                 } else {
                     $row[] = '&nbsp;';
                 }
@@ -453,8 +453,8 @@ if ($course->id != SITEID) {    // Only real courses have learning forums
 
 
 /// Output the page
-$PAGE->navbar->add($strforums);
-$PAGE->set_title("$course->shortname: $strforums");
+$PAGE->navbar->add($stranonforums);
+$PAGE->set_title("$course->shortname: $stranonforums");
 $PAGE->set_heading($course->fullname);
 $PAGE->set_button($searchform);
 echo $OUTPUT->header();
@@ -463,24 +463,24 @@ echo $OUTPUT->header();
 if (!isguestuser() && isloggedin() && $can_subscribe) {
     echo $OUTPUT->box_start('subscription');
     echo html_writer::tag('div',
-        html_writer::link(new moodle_url('/mod/forum/index.php', array('id'=>$course->id, 'subscribe'=>1, 'sesskey'=>sesskey())),
-            get_string('allsubscribe', 'forum')),
+        html_writer::link(new moodle_url('/mod/anonforum/index.php', array('id'=>$course->id, 'subscribe'=>1, 'sesskey'=>sesskey())),
+            get_string('allsubscribe', 'anonforum')),
         array('class'=>'helplink'));
     echo html_writer::tag('div',
-        html_writer::link(new moodle_url('/mod/forum/index.php', array('id'=>$course->id, 'subscribe'=>0, 'sesskey'=>sesskey())),
-            get_string('allunsubscribe', 'forum')),
+        html_writer::link(new moodle_url('/mod/anonforum/index.php', array('id'=>$course->id, 'subscribe'=>0, 'sesskey'=>sesskey())),
+            get_string('allunsubscribe', 'anonforum')),
         array('class'=>'helplink'));
     echo $OUTPUT->box_end();
     echo $OUTPUT->box('&nbsp;', 'clearer');
 }
 
-if ($generalforums) {
-    echo $OUTPUT->heading(get_string('generalforums', 'forum'), 2);
+if ($generalanonforums) {
+    echo $OUTPUT->heading(get_string('generalanonforums', 'anonforum'), 2);
     echo html_writer::table($generaltable);
 }
 
-if ($learningforums) {
-    echo $OUTPUT->heading(get_string('learningforums', 'forum'), 2);
+if ($learninganonforums) {
+    echo $OUTPUT->heading(get_string('learninganonforums', 'anonforum'), 2);
     echo html_writer::table($learningtable);
 }
 

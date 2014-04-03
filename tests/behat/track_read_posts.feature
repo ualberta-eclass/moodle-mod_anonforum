@@ -1,4 +1,4 @@
-@mod @mod_forum
+@mod @mod_anonforum
 Feature: A teacher can set one of 3 possible options for tracking read forum posts
   In order to ease the forum posts follow up
   As a user

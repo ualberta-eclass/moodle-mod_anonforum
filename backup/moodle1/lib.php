@@ -19,7 +19,7 @@
  * Provides support for the conversion of moodle1 backup to the moodle2 format
  *
  * @package    mod
- * @subpackage forum
+ * @subpackage anonforum
  * @copyright  2011 Mark Nielsen <mark@moodlerooms.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,9 +27,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Forum conversion handler
+ * Anonymous Forum conversion handler
  */
-class moodle1_mod_forum_handler extends moodle1_mod_handler {
+class moodle1_mod_anonforum_handler extends moodle1_mod_handler {
 
     /** @var moodle1_file_manager */
     protected $fileman = null;
@@ -52,7 +52,7 @@ class moodle1_mod_forum_handler extends moodle1_mod_handler {
      */
     public function get_paths() {
         return array(
-            new convert_path('forum', '/MOODLE_BACKUP/COURSE/MODULES/MOD/FORUM',
+            new convert_path('anonforum', '/MOODLE_BACKUP/COURSE/MODULES/MOD/ANONFORUM',
                 array(
                     'renamefields' => array(
                         'format' => 'messageformat',
@@ -70,9 +70,9 @@ class moodle1_mod_forum_handler extends moodle1_mod_handler {
     }
 
     /**
-     * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/FORUM data
+     * Converts /MOODLE_BACKUP/COURSE/MODULES/MOD/ANONFORUM data
      */
-    public function process_forum($data) {
+    public function process_anonforum($data) {
         global $CFG;
 
         // get the course module id and context id
@@ -82,7 +82,7 @@ class moodle1_mod_forum_handler extends moodle1_mod_handler {
         $contextid      = $this->converter->get_contextid(CONTEXT_MODULE, $this->moduleid);
 
         // get a fresh new file manager for this instance
-        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_forum');
+        $this->fileman = $this->converter->get_file_manager($contextid, 'mod_anonforum');
 
         // convert course files embedded into the intro
         $this->fileman->filearea = 'intro';
@@ -95,11 +95,11 @@ class moodle1_mod_forum_handler extends moodle1_mod_handler {
             $data['introformat'] = FORMAT_HTML;
         }
 
-        // start writing forum.xml
-        $this->open_xml_writer("activities/forum_{$this->moduleid}/forum.xml");
+        // start writing anonforum.xml
+        $this->open_xml_writer("activities/anonforum_{$this->moduleid}/anonforum.xml");
         $this->xmlwriter->begin_tag('activity', array('id' => $instanceid, 'moduleid' => $this->moduleid,
-            'modulename' => 'forum', 'contextid' => $contextid));
-        $this->xmlwriter->begin_tag('forum', array('id' => $instanceid));
+            'modulename' => 'anonforum', 'contextid' => $contextid));
+        $this->xmlwriter->begin_tag('anonforum', array('id' => $instanceid));
 
         foreach ($data as $field => $value) {
             if ($field <> 'id') {
@@ -113,17 +113,17 @@ class moodle1_mod_forum_handler extends moodle1_mod_handler {
     }
 
     /**
-     * This is executed when we reach the closing </MOD> tag of our 'forum' path
+     * This is executed when we reach the closing </MOD> tag of our 'anonforum' path
      */
-    public function on_forum_end() {
-        // finish writing forum.xml
+    public function on_anonforum_end() {
+        // finish writing anonforum.xml
         $this->xmlwriter->end_tag('discussions');
-        $this->xmlwriter->end_tag('forum');
+        $this->xmlwriter->end_tag('anonforum');
         $this->xmlwriter->end_tag('activity');
         $this->close_xml_writer();
 
         // write inforef.xml
-        $this->open_xml_writer("activities/forum_{$this->moduleid}/inforef.xml");
+        $this->open_xml_writer("activities/anonforum_{$this->moduleid}/inforef.xml");
         $this->xmlwriter->begin_tag('inforef');
         $this->xmlwriter->begin_tag('fileref');
         foreach ($this->fileman->get_fileids() as $fileid) {

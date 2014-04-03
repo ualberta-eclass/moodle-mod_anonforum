@@ -23,13 +23,13 @@
  */
 
 /**
- * Define all the backup steps that will be used by the backup_forum_activity_task
+ * Define all the backup steps that will be used by the backup_anonforum_activity_task
  */
 
 /**
  * Define the complete forum structure for backup, with file and id annotations
  */
-class backup_forum_activity_structure_step extends backup_activity_structure_step {
+class backup_anonforum_activity_structure_step extends backup_activity_structure_step {
 
     protected function define_structure() {
 
@@ -38,7 +38,7 @@ class backup_forum_activity_structure_step extends backup_activity_structure_ste
 
         // Define each element separated
 
-        $forum = new backup_nested_element('forum', array('id'), array(
+        $anonforum = new backup_nested_element('anonforum', array('id'), array(
             'type', 'name', 'intro', 'introformat',
             'assessed', 'assesstimestart', 'assesstimefinish', 'scale',
             'maxbytes', 'maxattachments', 'forcesubscribe', 'trackingtype',
@@ -88,19 +88,19 @@ class backup_forum_activity_structure_step extends backup_activity_structure_ste
 
         // Build the tree
 
-        $forum->add_child($discussions);
+        $anonforum->add_child($discussions);
         $discussions->add_child($discussion);
 
-        $forum->add_child($subscriptions);
+        $anonforum->add_child($subscriptions);
         $subscriptions->add_child($subscription);
 
-        $forum->add_child($digests);
+        $anonforum->add_child($digests);
         $digests->add_child($digest);
 
-        $forum->add_child($readposts);
+        $anonforum->add_child($readposts);
         $readposts->add_child($read);
 
-        $forum->add_child($trackedprefs);
+        $anonforum->add_child($trackedprefs);
         $trackedprefs->add_child($track);
 
         $discussion->add_child($posts);
@@ -111,29 +111,29 @@ class backup_forum_activity_structure_step extends backup_activity_structure_ste
 
         // Define sources
 
-        $forum->set_source_table('forum', array('id' => backup::VAR_ACTIVITYID));
+        $anonforum->set_source_table('anonforum', array('id' => backup::VAR_ACTIVITYID));
 
         // All these source definitions only happen if we are including user info
         if ($userinfo) {
             $discussion->set_source_sql('
                 SELECT *
-                  FROM {forum_discussions}
+                  FROM {anonforum_discussions}
                  WHERE forum = ?',
                 array(backup::VAR_PARENTID));
 
             // Need posts ordered by id so parents are always before childs on restore
-            $post->set_source_table('forum_posts', array('discussion' => backup::VAR_PARENTID), 'id ASC');
+            $post->set_source_table('anonforum_posts', array('discussion' => backup::VAR_PARENTID), 'id ASC');
 
-            $subscription->set_source_table('forum_subscriptions', array('forum' => backup::VAR_PARENTID));
+            $subscription->set_source_table('anonforum_subscriptions', array('anonforum' => backup::VAR_PARENTID));
 
-            $digest->set_source_table('forum_digests', array('forum' => backup::VAR_PARENTID));
+            $digest->set_source_table('anonforum_digests', array('anonforum' => backup::VAR_PARENTID));
 
-            $read->set_source_table('forum_read', array('forumid' => backup::VAR_PARENTID));
+            $read->set_source_table('anonforum_read', array('anonforumid' => backup::VAR_PARENTID));
 
-            $track->set_source_table('forum_track_prefs', array('forumid' => backup::VAR_PARENTID));
+            $track->set_source_table('anonforum_track_prefs', array('anonforumid' => backup::VAR_PARENTID));
 
             $rating->set_source_table('rating', array('contextid'  => backup::VAR_CONTEXTID,
-                                                      'component'  => backup_helper::is_sqlparam('mod_forum'),
+                                                      'component'  => backup_helper::is_sqlparam('mod_anonforum'),
                                                       'ratingarea' => backup_helper::is_sqlparam('post'),
                                                       'itemid'     => backup::VAR_PARENTID));
             $rating->set_source_alias('rating', 'value');
@@ -141,7 +141,7 @@ class backup_forum_activity_structure_step extends backup_activity_structure_ste
 
         // Define id annotations
 
-        $forum->annotate_ids('scale', 'scale');
+        $anonforum->annotate_ids('scale', 'scale');
 
         $discussion->annotate_ids('group', 'groupid');
 
@@ -161,13 +161,13 @@ class backup_forum_activity_structure_step extends backup_activity_structure_ste
 
         // Define file annotations
 
-        $forum->annotate_files('mod_forum', 'intro', null); // This file area hasn't itemid
+        $anonforum->annotate_files('mod_anonforum', 'intro', null); // This file area hasn't itemid
 
-        $post->annotate_files('mod_forum', 'post', 'id');
-        $post->annotate_files('mod_forum', 'attachment', 'id');
+        $post->annotate_files('mod_anonforum', 'post', 'id');
+        $post->annotate_files('mod_anonforum', 'attachment', 'id');
 
-        // Return the root element (forum), wrapped into standard activity structure
-        return $this->prepare_activity_structure($forum);
+        // Return the root element (anonforum), wrapped into standard activity structure
+        return $this->prepare_activity_structure($anonforum);
     }
 
 }

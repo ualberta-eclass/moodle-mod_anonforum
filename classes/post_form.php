@@ -16,9 +16,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * File containing the form definition to post in the forum.
+ * File containing the form definition to post in the anonymous forum.
  *
- * @package   mod_forum
+ * @package   mod_anonforum
  * @copyright Jamie Pratt <me@jamiep.org>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,34 +28,34 @@ require_once($CFG->libdir . '/formslib.php');
 require_once($CFG->dirroot . '/repository/lib.php');
 
 /**
- * Class to post in a forum.
+ * Class to post in a anonymous forum.
  *
- * @package   mod_forum
+ * @package   mod_anonforum
  * @copyright Jamie Pratt <me@jamiep.org>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_forum_post_form extends moodleform {
+class mod_anonforum_post_form extends moodleform {
 
     /**
-     * Returns the options array to use in filemanager for forum attachments
+     * Returns the options array to use in filemanager for anonymous forum attachments
      *
-     * @param stdClass $forum
+     * @param stdClass $anonforum
      * @return array
      */
-    public static function attachment_options($forum) {
+    public static function attachment_options($anonforum) {
         global $COURSE, $PAGE, $CFG;
-        $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $forum->maxbytes);
+        $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes, $anonforum->maxbytes);
         return array(
             'subdirs' => 0,
             'maxbytes' => $maxbytes,
-            'maxfiles' => $forum->maxattachments,
+            'maxfiles' => $anonforum->maxattachments,
             'accepted_types' => '*',
             'return_types' => FILE_INTERNAL
         );
     }
 
     /**
-     * Returns the options array to use in forum text editor
+     * Returns the options array to use in anonymous forum text editor
      *
      * @param context_module $context
      * @param int $postid post id, use null when adding new post
@@ -70,7 +70,7 @@ class mod_forum_post_form extends moodleform {
             'maxbytes' => $maxbytes,
             'trusttext'=> true,
             'return_types'=> FILE_INTERNAL | FILE_EXTERNAL,
-            'subdirs' => file_area_contains_subdirs($context, 'mod_forum', 'post', $postid)
+            'subdirs' => file_area_contains_subdirs($context, 'mod_anonforum', 'post', $postid)
         );
     }
 
@@ -88,7 +88,7 @@ class mod_forum_post_form extends moodleform {
         $cm = $this->_customdata['cm'];
         $coursecontext = $this->_customdata['coursecontext'];
         $modcontext = $this->_customdata['modcontext'];
-        $forum = $this->_customdata['forum'];
+        $anonforum = $this->_customdata['anonforum'];
         $post = $this->_customdata['post'];
         $edit = $this->_customdata['edit'];
         $thresholdwarning = $this->_customdata['thresholdwarning'];
@@ -104,62 +104,62 @@ class mod_forum_post_form extends moodleform {
             }
         }
 
-        $mform->addElement('text', 'subject', get_string('subject', 'forum'), 'size="48"');
+        $mform->addElement('text', 'subject', get_string('subject', 'anonforum'), 'size="48"');
         $mform->setType('subject', PARAM_TEXT);
         $mform->addRule('subject', get_string('required'), 'required', null, 'client');
         $mform->addRule('subject', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
-        $mform->addElement('editor', 'message', get_string('message', 'forum'), null, self::editor_options($modcontext, (empty($post->id) ? null : $post->id)));
+        $mform->addElement('editor', 'message', get_string('message', 'anonforum'), null, self::editor_options($modcontext, (empty($post->id) ? null : $post->id)));
         $mform->setType('message', PARAM_RAW);
         $mform->addRule('message', get_string('required'), 'required', null, 'client');
 
 
-        $mform->addElement('checkbox', 'anonymouspost', get_string('anonymouspost', 'forum'));
-        $mform->addHelpButton('anonymouspost', 'anonymouspost', 'forum');
+        $mform->addElement('checkbox', 'anonymouspost', get_string('anonymouspost', 'anonforum'));
+        $mform->addHelpButton('anonymouspost', 'anonymouspost', 'anonforum');
         $mform->setDefault('anonymouspost', 1);
 
 
 
-        if (isset($forum->id) && forum_is_forcesubscribed($forum)) {
+        if (isset($anonforum->id) && anonforum_is_forcesubscribed($anonforum)) {
 
-            $mform->addElement('static', 'subscribemessage', get_string('subscription', 'forum'), get_string('everyoneissubscribed', 'forum'));
+            $mform->addElement('static', 'subscribemessage', get_string('subscription', 'anonforum'), get_string('everyoneissubscribed', 'anonforum'));
             $mform->addElement('hidden', 'subscribe');
             $mform->setType('subscribe', PARAM_INT);
-            $mform->addHelpButton('subscribemessage', 'subscription', 'forum');
+            $mform->addHelpButton('subscribemessage', 'subscription', 'anonforum');
 
-        } else if (isset($forum->forcesubscribe)&& $forum->forcesubscribe != FORUM_DISALLOWSUBSCRIBE ||
+        } else if (isset($anonforum->forcesubscribe)&& $anonforum->forcesubscribe != ANONFORUM_DISALLOWSUBSCRIBE ||
                    has_capability('moodle/course:manageactivities', $coursecontext)) {
 
                 $options = array();
-                $options[0] = get_string('subscribestop', 'forum');
-                $options[1] = get_string('subscribestart', 'forum');
+                $options[0] = get_string('subscribestop', 'anonforum');
+                $options[1] = get_string('subscribestart', 'anonforum');
 
-                $mform->addElement('select', 'subscribe', get_string('subscription', 'forum'), $options);
-                $mform->addHelpButton('subscribe', 'subscription', 'forum');
-            } else if ($forum->forcesubscribe == FORUM_DISALLOWSUBSCRIBE) {
-                $mform->addElement('static', 'subscribemessage', get_string('subscription', 'forum'), get_string('disallowsubscribe', 'forum'));
+                $mform->addElement('select', 'subscribe', get_string('subscription', 'anonforum'), $options);
+                $mform->addHelpButton('subscribe', 'subscription', 'anonforum');
+            } else if ($anonforum->forcesubscribe == ANONFORUM_DISALLOWSUBSCRIBE) {
+                $mform->addElement('static', 'subscribemessage', get_string('subscription', 'anonforum'), get_string('disallowsubscribe', 'anonforum'));
                 $mform->addElement('hidden', 'subscribe');
                 $mform->setType('subscribe', PARAM_INT);
-                $mform->addHelpButton('subscribemessage', 'subscription', 'forum');
+                $mform->addHelpButton('subscribemessage', 'subscription', 'anonforum');
             }
 
-        if (!empty($forum->maxattachments) && $forum->maxbytes != 1 && has_capability('mod/forum:createattachment', $modcontext))  {  //  1 = No attachments at all
-            $mform->addElement('filemanager', 'attachments', get_string('attachment', 'forum'), null, self::attachment_options($forum));
-            $mform->addHelpButton('attachments', 'attachment', 'forum');
+        if (!empty($anonforum->maxattachments) && $anonforum->maxbytes != 1 && has_capability('mod/anonforum:createattachment', $modcontext))  {  //  1 = No attachments at all
+            $mform->addElement('filemanager', 'attachments', get_string('attachment', 'anonforum'), null, self::attachment_options($anonforum));
+            $mform->addHelpButton('attachments', 'attachment', 'anonforum');
         }
 
         if (empty($post->id) && has_capability('moodle/course:manageactivities', $coursecontext)) { // hack alert
-            $mform->addElement('checkbox', 'mailnow', get_string('mailnow', 'forum'));
+            $mform->addElement('checkbox', 'mailnow', get_string('mailnow', 'anonforum'));
         }
 
-        if (!empty($CFG->forum_enabletimedposts) && !$post->parent && has_capability('mod/forum:viewhiddentimedposts', $coursecontext)) { // hack alert
-            $mform->addElement('header', 'displayperiod', get_string('displayperiod', 'forum'));
+        if (!empty($CFG->anonforum_enabletimedposts) && !$post->parent && has_capability('mod/anonforum:viewhiddentimedposts', $coursecontext)) { // hack alert
+            $mform->addElement('header', 'displayperiod', get_string('displayperiod', 'anonforum'));
 
-            $mform->addElement('date_selector', 'timestart', get_string('displaystart', 'forum'), array('optional'=>true));
-            $mform->addHelpButton('timestart', 'displaystart', 'forum');
+            $mform->addElement('date_selector', 'timestart', get_string('displaystart', 'anonforum'), array('optional'=>true));
+            $mform->addHelpButton('timestart', 'displaystart', 'anonforum');
 
-            $mform->addElement('date_selector', 'timeend', get_string('displayend', 'forum'), array('optional'=>true));
-            $mform->addHelpButton('timeend', 'displayend', 'forum');
+            $mform->addElement('date_selector', 'timeend', get_string('displayend', 'anonforum'), array('optional'=>true));
+            $mform->addHelpButton('timeend', 'displayend', 'anonforum');
 
         } else {
             $mform->addElement('hidden', 'timestart');
@@ -173,7 +173,7 @@ class mod_forum_post_form extends moodleform {
             $groupdata = groups_get_activity_allowed_groups($cm);
             $groupcount = count($groupdata);
             $modulecontext = context_module::instance($cm->id);
-            $contextcheck = has_capability('mod/forum:movediscussions', $modulecontext) && empty($post->parent) && $groupcount;
+            $contextcheck = has_capability('mod/anonforum:movediscussions', $modulecontext) && empty($post->parent) && $groupcount;
             if ($contextcheck) {
                 $groupinfo = array('0' => get_string('allparticipants'));
                 foreach ($groupdata as $grouptemp) {
@@ -196,15 +196,15 @@ class mod_forum_post_form extends moodleform {
         if (isset($post->edit)) { // hack alert
             $submit_string = get_string('savechanges');
         } else {
-            $submit_string = get_string('posttoforum', 'forum');
+            $submit_string = get_string('posttoanonforum', 'anonforum');
         }
         $this->add_action_buttons(false, $submit_string);
 
         $mform->addElement('hidden', 'course');
         $mform->setType('course', PARAM_INT);
 
-        $mform->addElement('hidden', 'forum');
-        $mform->setType('forum', PARAM_INT);
+        $mform->addElement('hidden', 'anonforum');
+        $mform->setType('anonforum', PARAM_INT);
 
         $mform->addElement('hidden', 'discussion');
         $mform->setType('discussion', PARAM_INT);
@@ -247,13 +247,13 @@ class mod_forum_post_form extends moodleform {
     function validation($data, $files) {
         $errors = parent::validation($data, $files);
         if (($data['timeend']!=0) && ($data['timestart']!=0) && $data['timeend'] <= $data['timestart']) {
-            $errors['timeend'] = get_string('timestartenderror', 'forum');
+            $errors['timeend'] = get_string('timestartenderror', 'anonforum');
         }
         if (empty($data['message']['text'])) {
-            $errors['message'] = get_string('erroremptymessage', 'forum');
+            $errors['message'] = get_string('erroremptymessage', 'anonforum');
         }
         if (empty($data['subject'])) {
-            $errors['subject'] = get_string('erroremptysubject', 'forum');
+            $errors['subject'] = get_string('erroremptysubject', 'anonforum');
         }
         return $errors;
     }

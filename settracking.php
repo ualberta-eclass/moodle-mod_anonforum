@@ -16,9 +16,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Set tracking option for the forum.
+ * Set tracking option for the anonforum.
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 2005 mchurch
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,54 +26,54 @@
 require_once("../../config.php");
 require_once("lib.php");
 
-$id         = required_param('id',PARAM_INT);                           // The forum to subscribe or unsubscribe to
+$id         = required_param('id',PARAM_INT);                           // The anonymous forum to subscribe or unsubscribe to
 $returnpage = optional_param('returnpage', 'index.php', PARAM_FILE);    // Page to return to.
 
-$url = new moodle_url('/mod/forum/settracking.php', array('id'=>$id));
+$url = new moodle_url('/mod/anonforum/settracking.php', array('id'=>$id));
 if ($returnpage !== 'index.php') {
     $url->param('returnpage', $returnpage);
 }
 $PAGE->set_url($url);
 
-if (! $forum = $DB->get_record("forum", array("id" => $id))) {
-    print_error('invalidforumid', 'forum');
+if (! $anonforum = $DB->get_record("anonforum", array("id" => $id))) {
+    print_error('invalidanonforumid', 'anonforum');
 }
 
-if (! $course = $DB->get_record("course", array("id" => $forum->course))) {
+if (! $course = $DB->get_record("course", array("id" => $anonforum->course))) {
     print_error('invalidcoursemodule');
 }
 
-if (! $cm = get_coursemodule_from_instance("forum", $forum->id, $course->id)) {
+if (! $cm = get_coursemodule_from_instance("anonforum", $anonforum->id, $course->id)) {
     print_error('invalidcoursemodule');
 }
 
 require_course_login($course, false, $cm);
 
-$returnto = forum_go_back_to($returnpage.'?id='.$course->id.'&f='.$forum->id);
+$returnto = anonforum_go_back_to($returnpage.'?id='.$course->id.'&f='.$anonforum->id);
 
-if (!forum_tp_can_track_forums($forum)) {
+if (!anonforum_tp_can_track_anonforums($anonforum)) {
     redirect($returnto);
 }
 
 $info = new stdClass();
 $info->name  = fullname($USER);
-$info->forum = format_string($forum->name);
-if (forum_tp_is_tracked($forum) ) {
-    if (forum_tp_stop_tracking($forum->id)) {
-        if (empty($forum->anonymous)) {
-            add_to_log($course->id, "forum", "stop tracking", "view.php?f=$forum->id", $forum->id, $cm->id);
+$info->anonforum = format_string($anonforum->name);
+if (anonforum_tp_is_tracked($anonforum) ) {
+    if (anonforum_tp_stop_tracking($anonforum->id)) {
+        if (empty($anonforum->anonymous)) {
+            add_to_log($course->id, "anonforum", "stop tracking", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
         }
-        redirect($returnto, get_string("nownottracking", "forum", $info), 1);
+        redirect($returnto, get_string("nownottracking", "anonforum", $info), 1);
     } else {
         print_error('cannottrack', '', $_SERVER["HTTP_REFERER"]);
     }
 
 } else { // subscribe
-    if (forum_tp_start_tracking($forum->id)) {
-        if (empty($forum->anonymous)) {
-            add_to_log($course->id, "forum", "start tracking", "view.php?f=$forum->id", $forum->id, $cm->id);
+    if (anonforum_tp_start_tracking($anonforum->id)) {
+        if (empty($anonforum->anonymous)) {
+            add_to_log($course->id, "anonforum", "start tracking", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
         }
-        redirect($returnto, get_string("nowtracking", "forum", $info), 1);
+        redirect($returnto, get_string("nowtracking", "anonforum", $info), 1);
     } else {
         print_error('cannottrack', '', $_SERVER["HTTP_REFERER"]);
     }

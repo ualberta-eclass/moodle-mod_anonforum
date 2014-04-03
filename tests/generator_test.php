@@ -17,7 +17,7 @@
 /**
  * PHPUnit data generator tests
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @category   phpunit
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -29,42 +29,42 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * PHPUnit data generator testcase
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @category   phpunit
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_forum_generator_testcase extends advanced_testcase {
+class mod_anonforum_generator_testcase extends advanced_testcase {
     public function test_generator() {
         global $DB;
 
         $this->resetAfterTest(true);
 
-        $this->assertEquals(0, $DB->count_records('forum'));
+        $this->assertEquals(0, $DB->count_records('anonforum'));
 
         $course = $this->getDataGenerator()->create_course();
 
-        /** @var mod_forum_generator $generator */
-        $generator = $this->getDataGenerator()->get_plugin_generator('mod_forum');
-        $this->assertInstanceOf('mod_forum_generator', $generator);
-        $this->assertEquals('forum', $generator->get_modulename());
+        /** @var mod_anonforum_generator $generator */
+        $generator = $this->getDataGenerator()->get_plugin_generator('mod_anonforum');
+        $this->assertInstanceOf('mod_anonforum_generator', $generator);
+        $this->assertEquals('anonforum', $generator->get_modulename());
 
         $generator->create_instance(array('course'=>$course->id));
         $generator->create_instance(array('course'=>$course->id));
-        $forum = $generator->create_instance(array('course'=>$course->id));
-        $this->assertEquals(3, $DB->count_records('forum'));
+        $anonforum = $generator->create_instance(array('course'=>$course->id));
+        $this->assertEquals(3, $DB->count_records('anonforum'));
 
-        $cm = get_coursemodule_from_instance('forum', $forum->id);
-        $this->assertEquals($forum->id, $cm->instance);
-        $this->assertEquals('forum', $cm->modname);
+        $cm = get_coursemodule_from_instance('anonforum', $anonforum->id);
+        $this->assertEquals($anonforum->id, $cm->instance);
+        $this->assertEquals('anonforum', $cm->modname);
         $this->assertEquals($course->id, $cm->course);
 
         $context = context_module::instance($cm->id);
-        $this->assertEquals($forum->cmid, $context->instanceid);
+        $this->assertEquals($anonforum->cmid, $context->instanceid);
 
         // test gradebook integration using low level DB access - DO NOT USE IN PLUGIN CODE!
-        $forum = $generator->create_instance(array('course'=>$course->id, 'assessed'=>1, 'scale'=>100));
-        $gitem = $DB->get_record('grade_items', array('courseid'=>$course->id, 'itemtype'=>'mod', 'itemmodule'=>'forum', 'iteminstance'=>$forum->id));
+        $anonforum = $generator->create_instance(array('course'=>$course->id, 'assessed'=>1, 'scale'=>100));
+        $gitem = $DB->get_record('grade_items', array('courseid'=>$course->id, 'itemtype'=>'mod', 'itemmodule'=>'anonforum', 'iteminstance'=>$anonforum->id));
         $this->assertNotEmpty($gitem);
         $this->assertEquals(100, $gitem->grademax);
         $this->assertEquals(0, $gitem->grademin);
@@ -88,20 +88,20 @@ class mod_forum_generator_testcase extends advanced_testcase {
         // The forum.
         $record = new stdClass();
         $record->course = $course->id;
-        $forum = self::getDataGenerator()->create_module('forum', $record);
+        $anonforum = self::getDataGenerator()->create_module('anonforum', $record);
 
         // Add a few discussions.
         $record = array();
         $record['course'] = $course->id;
-        $record['forum'] = $forum->id;
+        $record['anonforum'] = $anonforum->id;
         $record['userid'] = $user->id;
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_discussion($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_discussion($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_discussion($record);
 
         // Check the discussions were correctly created.
-        $this->assertEquals(3, $DB->count_records_select('forum_discussions', 'forum = :forum',
-            array('forum' => $forum->id)));
+        $this->assertEquals(3, $DB->count_records_select('anonforum_discussions', 'anonforum = :anonforum',
+            array('anonforum' => $anonforum->id)));
     }
 
     /**
@@ -124,26 +124,26 @@ class mod_forum_generator_testcase extends advanced_testcase {
         // The forum.
         $record = new stdClass();
         $record->course = $course->id;
-        $forum = self::getDataGenerator()->create_module('forum', $record);
+        $anonforum = self::getDataGenerator()->create_module('anonforum', $record);
 
         // Add a discussion.
-        $record->forum = $forum->id;
+        $record->anonforum = $anonforum->id;
         $record->userid = $user1->id;
-        $discussion = self::getDataGenerator()->get_plugin_generator('mod_forum')->create_discussion($record);
+        $discussion = self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_discussion($record);
 
         // Add a bunch of replies, changing the userid.
         $record = new stdClass();
         $record->discussion = $discussion->id;
         $record->userid = $user2->id;
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_post($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_post($record);
         $record->userid = $user3->id;
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_post($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_post($record);
         $record->userid = $user4->id;
-        self::getDataGenerator()->get_plugin_generator('mod_forum')->create_post($record);
+        self::getDataGenerator()->get_plugin_generator('mod_anonforum')->create_post($record);
 
         // Check the posts were correctly created, remember, when creating a discussion a post
         // is generated as well, so we should have 4 posts, not 3.
-        $this->assertEquals(4, $DB->count_records_select('forum_posts', 'discussion = :discussion',
+        $this->assertEquals(4, $DB->count_records_select('anonforum_posts', 'discussion = :discussion',
             array('discussion' => $discussion->id)));
     }
 
@@ -162,20 +162,20 @@ class mod_forum_generator_testcase extends advanced_testcase {
 
         // Create course and forum.
         $course = self::getDataGenerator()->create_course();
-        $forum = self::getDataGenerator()->create_module('forum', array('course' => $course));
+        $anonforum = self::getDataGenerator()->create_module('anonforum', array('course' => $course));
 
-        $generator = self::getDataGenerator()->get_plugin_generator('mod_forum');
+        $generator = self::getDataGenerator()->get_plugin_generator('mod_anonforum');
         // This should create discussion.
-        $post1 = $generator->create_content($forum);
+        $post1 = $generator->create_content($anonforum);
         // This should create posts in the discussion.
-        $post2 = $generator->create_content($forum, array('parent' => $post1->id));
-        $post3 = $generator->create_content($forum, array('discussion' => $post1->discussion));
+        $post2 = $generator->create_content($anonforum, array('parent' => $post1->id));
+        $post3 = $generator->create_content($anonforum, array('discussion' => $post1->discussion));
         // This should create posts answering another post.
-        $post4 = $generator->create_content($forum, array('parent' => $post2->id));
+        $post4 = $generator->create_content($anonforum, array('parent' => $post2->id));
 
-        $discussionrecords = $DB->get_records('forum_discussions', array('forum' => $forum->id));
-        $postrecords = $DB->get_records('forum_posts');
-        $postrecords2 = $DB->get_records('forum_posts', array('discussion' => $post1->discussion));
+        $discussionrecords = $DB->get_records('anonforum_discussions', array('anonforum' => $anonforum->id));
+        $postrecords = $DB->get_records('anonforum_posts');
+        $postrecords2 = $DB->get_records('anonforum_posts', array('discussion' => $post1->discussion));
         $this->assertEquals(1, count($discussionrecords));
         $this->assertEquals(4, count($postrecords));
         $this->assertEquals(4, count($postrecords2));

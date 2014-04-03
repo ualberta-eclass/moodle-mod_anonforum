@@ -16,10 +16,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Subscribe to or unsubscribe from a forum or manage forum subscription mode
+ * Subscribe to or unsubscribe from a anonforum or manage anonforum subscription mode
  *
  * This script can be used by either individual users to subscribe to or
- * unsubscribe from a forum (no 'mode' param provided), or by forum managers
+ * unsubscribe from a anonforum (no 'mode' param provided), or by anonforum managers
  * to control the subscription mode (by 'mode' param).
  * This script can be called from a link in email so the sesskey is not
  * required parameter. However, if sesskey is missing, the user has to go
@@ -27,20 +27,20 @@
  * sesskey.
  *
  * @package    mod
- * @subpackage forum
+ * @subpackage anonforum
  * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
-require_once($CFG->dirroot.'/mod/forum/lib.php');
+require_once($CFG->dirroot.'/mod/anonforum/lib.php');
 
-$id      = required_param('id', PARAM_INT);             // the forum to subscribe or unsubscribe to
-$mode    = optional_param('mode', null, PARAM_INT);     // the forum's subscription mode
+$id      = required_param('id', PARAM_INT);             // the anonymous forum to subscribe or unsubscribe to
+$mode    = optional_param('mode', null, PARAM_INT);     // the anonymous forum's subscription mode
 $user    = optional_param('user', 0, PARAM_INT);        // userid of the user to subscribe, defaults to $USER
 $sesskey = optional_param('sesskey', null, PARAM_RAW);  // sesskey
 
-$url = new moodle_url('/mod/forum/subscribe.php', array('id'=>$id));
+$url = new moodle_url('/mod/anonforum/subscribe.php', array('id'=>$id));
 if (!is_null($mode)) {
     $url->param('mode', $mode);
 }
@@ -52,15 +52,15 @@ if (!is_null($sesskey)) {
 }
 $PAGE->set_url($url);
 
-$forum   = $DB->get_record('forum', array('id' => $id), '*', MUST_EXIST);
-$course  = $DB->get_record('course', array('id' => $forum->course), '*', MUST_EXIST);
-$cm      = get_coursemodule_from_instance('forum', $forum->id, $course->id, false, MUST_EXIST);
+$anonforum   = $DB->get_record('anonforum', array('id' => $id), '*', MUST_EXIST);
+$course  = $DB->get_record('course', array('id' => $anonforum->course), '*', MUST_EXIST);
+$cm      = get_coursemodule_from_instance('anonforum', $anonforum->id, $course->id, false, MUST_EXIST);
 $context = context_module::instance($cm->id);
 
 if ($user) {
     require_sesskey();
-    if (!has_capability('mod/forum:managesubscriptions', $context)) {
-        print_error('nopermissiontosubscribe', 'forum');
+    if (!has_capability('mod/anonforum:managesubscriptions', $context)) {
+        print_error('nopermissiontosubscribe', 'anonforum');
     }
     $user = $DB->get_record('user', array('id' => $user), '*', MUST_EXIST);
 } else {
@@ -72,9 +72,9 @@ if (isset($cm->groupmode) && empty($course->groupmodeforce)) {
 } else {
     $groupmode = $course->groupmode;
 }
-if ($groupmode && !forum_is_subscribed($user->id, $forum) && !has_capability('moodle/site:accessallgroups', $context)) {
+if ($groupmode && !anonforum_is_subscribed($user->id, $anonforum) && !has_capability('moodle/site:accessallgroups', $context)) {
     if (!groups_get_all_groups($course->id, $USER->id)) {
-        print_error('cannotsubscribe', 'forum');
+        print_error('cannotsubscribe', 'anonforum');
     }
 }
 
@@ -85,13 +85,13 @@ if (is_null($mode) and !is_enrolled($context, $USER, '', true)) {   // Guests an
     $PAGE->set_heading($course->fullname);
     if (isguestuser()) {
         echo $OUTPUT->header();
-        echo $OUTPUT->confirm(get_string('subscribeenrolledonly', 'forum').'<br /><br />'.get_string('liketologin'),
-                     get_login_url(), new moodle_url('/mod/forum/view.php', array('f'=>$id)));
+        echo $OUTPUT->confirm(get_string('subscribeenrolledonly', 'anonforum').'<br /><br />'.get_string('liketologin'),
+                     get_login_url(), new moodle_url('/mod/anonforum/view.php', array('f'=>$id)));
         echo $OUTPUT->footer();
         exit;
     } else {
         // there should not be any links leading to this place, just redirect
-        redirect(new moodle_url('/mod/forum/view.php', array('f'=>$id)), get_string('subscribeenrolledonly', 'forum'));
+        redirect(new moodle_url('/mod/anonforum/view.php', array('f'=>$id)), get_string('subscribeenrolledonly', 'anonforum'));
     }
 }
 
@@ -99,85 +99,85 @@ $returnto = optional_param('backtoindex',0,PARAM_INT)
     ? "index.php?id=".$course->id
     : "view.php?f=$id";
 
-if (!is_null($mode) and has_capability('mod/forum:managesubscriptions', $context)) {
+if (!is_null($mode) and has_capability('mod/anonforum:managesubscriptions', $context)) {
     require_sesskey();
     switch ($mode) {
-        case FORUM_CHOOSESUBSCRIBE : // 0
-            forum_forcesubscribe($forum->id, FORUM_CHOOSESUBSCRIBE);
-            redirect($returnto, get_string("everyonecannowchoose", "forum"), 1);
+        case ANONFORUM_CHOOSESUBSCRIBE : // 0
+            anonforum_forcesubscribe($anonforum->id, ANONFORUM_CHOOSESUBSCRIBE);
+            redirect($returnto, get_string("everyonecannowchoose", "anonforum"), 1);
             break;
-        case FORUM_FORCESUBSCRIBE : // 1
-            forum_forcesubscribe($forum->id, FORUM_FORCESUBSCRIBE);
-            redirect($returnto, get_string("everyoneisnowsubscribed", "forum"), 1);
+        case ANONFORUM_FORCESUBSCRIBE : // 1
+            anonforum_forcesubscribe($anonforum->id, ANONFORUM_FORCESUBSCRIBE);
+            redirect($returnto, get_string("everyoneisnowsubscribed", "anonforum"), 1);
             break;
-        case FORUM_INITIALSUBSCRIBE : // 2
-            if ($forum->forcesubscribe <> FORUM_INITIALSUBSCRIBE) {
-                $users = forum_get_potential_subscribers($context, 0, 'u.id, u.email', '');
+        case ANONFORUM_INITIALSUBSCRIBE : // 2
+            if ($anonforum->forcesubscribe <> ANONFORUM_INITIALSUBSCRIBE) {
+                $users = anonforum_get_potential_subscribers($context, 0, 'u.id, u.email', '');
                 foreach ($users as $user) {
-                    forum_subscribe($user->id, $forum->id);
+                    anonforum_subscribe($user->id, $anonforum->id);
                 }
             }
-            forum_forcesubscribe($forum->id, FORUM_INITIALSUBSCRIBE);
-            redirect($returnto, get_string("everyoneisnowsubscribed", "forum"), 1);
+            anonforum_forcesubscribe($anonforum->id, ANONFORUM_INITIALSUBSCRIBE);
+            redirect($returnto, get_string("everyoneisnowsubscribed", "anonforum"), 1);
             break;
-        case FORUM_DISALLOWSUBSCRIBE : // 3
-            forum_forcesubscribe($forum->id, FORUM_DISALLOWSUBSCRIBE);
-            redirect($returnto, get_string("noonecansubscribenow", "forum"), 1);
+        case ANONFORUM_DISALLOWSUBSCRIBE : // 3
+            anonforum_forcesubscribe($anonforum->id, ANONFORUM_DISALLOWSUBSCRIBE);
+            redirect($returnto, get_string("noonecansubscribenow", "anonforum"), 1);
             break;
         default:
-            print_error(get_string('invalidforcesubscribe', 'forum'));
+            print_error(get_string('invalidforcesubscribe', 'anonforum'));
     }
 }
 
-if (forum_is_forcesubscribed($forum)) {
-    redirect($returnto, get_string("everyoneisnowsubscribed", "forum"), 1);
+if (anonforum_is_forcesubscribed($anonforum)) {
+    redirect($returnto, get_string("everyoneisnowsubscribed", "anonforum"), 1);
 }
 
 $info = new stdClass();
 $info->name  = fullname($user);
-$info->forum = format_string($forum->name);
+$info->anonforum = format_string($anonforum->name);
 
-if (forum_is_subscribed($user->id, $forum->id)) {
+if (anonforum_is_subscribed($user->id, $anonforum->id)) {
     if (is_null($sesskey)) {    // we came here via link in email
         $PAGE->set_title($course->shortname);
         $PAGE->set_heading($course->fullname);
         echo $OUTPUT->header();
-        echo $OUTPUT->confirm(get_string('confirmunsubscribe', 'forum', format_string($forum->name)),
-                new moodle_url($PAGE->url, array('sesskey' => sesskey())), new moodle_url('/mod/forum/view.php', array('f' => $id)));
+        echo $OUTPUT->confirm(get_string('confirmunsubscribe', 'anonforum', format_string($anonforum->name)),
+                new moodle_url($PAGE->url, array('sesskey' => sesskey())), new moodle_url('/mod/anonforum/view.php', array('f' => $id)));
         echo $OUTPUT->footer();
         exit;
     }
     require_sesskey();
-    if (forum_unsubscribe($user->id, $forum->id)) {
-        if (empty($forum->anonymous)) {
-            add_to_log($course->id, "forum", "unsubscribe", "view.php?f=$forum->id", $forum->id, $cm->id);
+    if (anonforum_unsubscribe($user->id, $anonforum->id)) {
+        if (empty($anonforum->anonymous)) {
+            add_to_log($course->id, "anonforum", "unsubscribe", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
         }
-        redirect($returnto, get_string("nownotsubscribed", "forum", $info), 1);
+        redirect($returnto, get_string("nownotsubscribed", "anonforum", $info), 1);
     } else {
-        print_error('cannotunsubscribe', 'forum', $_SERVER["HTTP_REFERER"]);
+        print_error('cannotunsubscribe', 'anonforum', $_SERVER["HTTP_REFERER"]);
     }
 
 } else {  // subscribe
-    if ($forum->forcesubscribe == FORUM_DISALLOWSUBSCRIBE &&
-                !has_capability('mod/forum:managesubscriptions', $context)) {
-        print_error('disallowsubscribe', 'forum', $_SERVER["HTTP_REFERER"]);
+    if ($anonforum->forcesubscribe == ANONFORUM_DISALLOWSUBSCRIBE &&
+                !has_capability('mod/anonforum:managesubscriptions', $context)) {
+        print_error('disallowsubscribe', 'anonforum', $_SERVER["HTTP_REFERER"]);
     }
-    if (!has_capability('mod/forum:viewdiscussion', $context)) {
-        print_error('noviewdiscussionspermission', 'forum', $_SERVER["HTTP_REFERER"]);
+    if (!has_capability('mod/anonforum:viewdiscussion', $context)) {
+        print_error('noviewdiscussionspermission', 'anonforum', $_SERVER["HTTP_REFERER"]);
     }
     if (is_null($sesskey)) {    // we came here via link in email
         $PAGE->set_title($course->shortname);
         $PAGE->set_heading($course->fullname);
         echo $OUTPUT->header();
-        echo $OUTPUT->confirm(get_string('confirmsubscribe', 'forum', format_string($forum->name)),
-                new moodle_url($PAGE->url, array('sesskey' => sesskey())), new moodle_url('/mod/forum/view.php', array('f' => $id)));
+        echo $OUTPUT->confirm(get_string('confirmsubscribe', 'anonforum', format_string($anonforum->name)),
+                new moodle_url($PAGE->url, array('sesskey' => sesskey())), new moodle_url('/mod/anonforum/view.php', array('f' => $id)));
         echo $OUTPUT->footer();
         exit;
     }
     require_sesskey();
-    forum_subscribe($user->id, $forum->id);
-    if (empty($forum->anonymous)) {
-        add_to_log($course->id, "forum", "subscribe", "view.php?f=$forum->id", $forum->id, $cm->id);
+    anonforum_subscribe($user->id, $anonforum->id);
+    if (empty($anonforum->anonymous)) {
+        add_to_log($course->id, "anonforum", "subscribe", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
     }
-    redirect($returnto, get_string("nowsubscribed", "forum", $info), 1);
+    redirect($returnto, get_string("nowsubscribed", "anonforum", $info), 1);
 }

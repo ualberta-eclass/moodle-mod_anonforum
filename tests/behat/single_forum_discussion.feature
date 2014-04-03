@@ -1,4 +1,4 @@
-@mod @mod_forum
+@mod @mod_anonforum
 Feature: Single simple forum discussion type
   In order to restrict the discussion topic to one
   As a teacher

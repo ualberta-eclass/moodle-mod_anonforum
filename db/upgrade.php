@@ -17,7 +17,7 @@
 
 /**
  * This file keeps track of upgrades to
- * the forum module
+ * the anonymous forum module
  *
  * Sometimes, changes between versions involve
  * alterations to database structures and other
@@ -36,12 +36,12 @@
  * Please do not forget to use upgrade_set_timeout()
  * before any action that may take longer time to finish.
  *
- * @package mod-forum
+ * @package mod-anonforum
  * @copyright 2003 onwards Eloy Lafuente (stronk7) {@link http://stronk7.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function xmldb_forum_upgrade($oldversion) {
+function xmldb_anonforum_upgrade($oldversion) {
     global $CFG, $DB, $OUTPUT;
 
     $dbman = $DB->get_manager(); // Loads ddl manager and xmldb classes.
@@ -57,8 +57,8 @@ function xmldb_forum_upgrade($oldversion) {
 
     if ($oldversion < 2013020500) {
 
-        // Define field displaywordcount to be added to forum.
-        $table = new xmldb_table('forum');
+        // Define field displaywordcount to be added to anonymous forum.
+        $table = new xmldb_table('anonforum');
         $field = new xmldb_field('displaywordcount', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'completionposts');
 
         // Conditionally launch add field displaywordcount.
@@ -66,54 +66,55 @@ function xmldb_forum_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-        // Forum savepoint reached.
-        upgrade_mod_savepoint(true, 2013020500, 'forum');
+        // Anonymous forum savepoint reached.
+        upgrade_mod_savepoint(true, 2013020500, 'anonforum');
     }
 
-    // Forcefully assign mod/forum:allowforcesubscribe to frontpage role, as we missed that when
+    // Forcefully assign mod/anonforum:allowforcesubscribe to frontpage role, as we missed that when
     // capability was introduced.
     if ($oldversion < 2013021200) {
-        // If capability mod/forum:allowforcesubscribe is defined then set it for frontpage role.
-        if (get_capability_info('mod/forum:allowforcesubscribe')) {
-            assign_legacy_capabilities('mod/forum:allowforcesubscribe', array('frontpage' => CAP_ALLOW));
+        // If capability mod/anonforum:allowforcesubscribe is defined then set it for frontpage role.
+        if (get_capability_info('mod/anonforum:allowforcesubscribe')) {
+            assign_legacy_capabilities('mod/anonforum:allowforcesubscribe', array('frontpage' => CAP_ALLOW));
         }
-        // Forum savepoint reached.
-        upgrade_mod_savepoint(true, 2013021200, 'forum');
+        // Anonymous forum savepoint reached.
+        upgrade_mod_savepoint(true, 2013021200, 'anonforum');
     }
 
 
     // Moodle v2.5.0 release upgrade line.
     // Put any upgrade step following this.
     if ($oldversion < 2013071000) {
-        // Define table forum_digests to be created.
-        $table = new xmldb_table('forum_digests');
+        // Define table anonforum_digests to be created.
+        $table = new xmldb_table('anonforum_digests');
 
-        // Adding fields to table forum_digests.
+        // Adding fields to table anonforum_digests.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
-        $table->add_field('forum', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('anonforum', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('maildigest', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '-1');
 
-        // Adding keys to table forum_digests.
+        // Adding keys to table anonforum_digests.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
         $table->add_key('userid', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
-        $table->add_key('forum', XMLDB_KEY_FOREIGN, array('forum'), 'forum', array('id'));
-        $table->add_key('forumdigest', XMLDB_KEY_UNIQUE, array('forum', 'userid', 'maildigest'));
+        $table->add_key('anonforum', XMLDB_KEY_FOREIGN, array('anonforum'), 'anonforum', array('id'));
+        $table->add_key('anonforumdigest', XMLDB_KEY_UNIQUE, array('anonforum', 'userid', 'maildigest'));
 
-        // Conditionally launch create table for forum_digests.
+        // Conditionally launch create table for anonforum_digests.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
-        // Forum savepoint reached.
-        upgrade_mod_savepoint(true, 2013071000, 'forum');
+        // Anonymous forum savepoint reached.
+        upgrade_mod_savepoint(true, 2013071000, 'anonforum');
+    }
 
     if ($oldversion < 2013081402) {
 
-        // Define field anonymous to be added to forum
-        $table = new xmldb_table('forum');
+        // Define field anonymous to be added to anonymous forum
+        $table = new xmldb_table('anonforum');
         $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'displaywordcount');
-        $tablepost = new xmldb_table('forum_posts');
+        $tablepost = new xmldb_table('anonforum_posts');
         $fieldpost = new xmldb_field('anonymouspost', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'mailnow');
 
         // Conditionally launch add field anonymous
@@ -125,8 +126,8 @@ function xmldb_forum_upgrade($oldversion) {
             $dbman->add_field($tablepost, $fieldpost);
         }
 
-        // forum savepoint reached
-        upgrade_mod_savepoint(true, 2013081402, 'forum');
+        // Anonymous forum savepoint reached
+        upgrade_mod_savepoint(true, 2013081402, 'anonforum');
     }
 
     // Moodle v2.6.0 release upgrade line.

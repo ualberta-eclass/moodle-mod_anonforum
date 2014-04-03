@@ -18,7 +18,7 @@
 /**
  * The module forums external functions unit tests
  *
- * @package    mod_forum
+ * @package    mod_anonforum
  * @category   external
  * @copyright  2013 Andrew Nicols
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -28,9 +28,9 @@ defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 
-class mod_forum_maildigest_testcase extends advanced_testcase {
+class mod_anonforum_maildigest_testcase extends advanced_testcase {
 
-    public function test_mod_forum_set_maildigest() {
+    public function test_mod_anonforum_set_maildigest() {
         global $USER, $DB;
 
         $this->resetAfterTest(true);
@@ -44,69 +44,69 @@ class mod_forum_maildigest_testcase extends advanced_testcase {
         // Create courses to add the modules.
         $course1 = self::getDataGenerator()->create_course();
 
-        $forumids = array();
+        $anonforumids = array();
 
         // First forum.
         $record = new stdClass();
         $record->introformat = FORMAT_HTML;
         $record->course = $course1->id;
-        $forum1 = self::getDataGenerator()->create_module('forum', $record);
-        $forumids[] = $forum1->id;
+        $anonforum1 = self::getDataGenerator()->create_module('anonforum', $record);
+        $anonforumids[] = $anonforum1->id;
 
         // Check the forum was correctly created.
-        list ($test, $params) = $DB->get_in_or_equal($forumids, SQL_PARAMS_NAMED, 'forum');
+        list ($test, $params) = $DB->get_in_or_equal($anonforumids, SQL_PARAMS_NAMED, 'anonforum');
 
-        $this->assertEquals(count($forumids),
-            $DB->count_records_select('forum', 'id ' . $test, $params));
+        $this->assertEquals(count($anonforumids),
+            $DB->count_records_select('anonforum', 'id ' . $test, $params));
 
         // Enrol the user in the courses.
         // DataGenerator->enrol_user automatically sets a role for the user
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, null, 'manual');
 
         // Confirm that there is no current value.
-        $currentsetting = $DB->get_record('forum_digests', array(
-            'forum' => $forum1->id,
+        $currentsetting = $DB->get_record('anonforum_digests', array(
+            'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertFalse($currentsetting);
 
         // Test with each of the valid values:
         // 0, 1, and 2 are valid values.
-        forum_set_user_maildigest($forum1, 0, $user);
-        $currentsetting = $DB->get_record('forum_digests', array(
-            'forum' => $forum1->id,
+        forum_set_user_maildigest($anonforum1, 0, $user);
+        $currentsetting = $DB->get_record('anonforum_digests', array(
+            'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 0);
 
-        forum_set_user_maildigest($forum1, 1, $user);
-        $currentsetting = $DB->get_record('forum_digests', array(
-            'forum' => $forum1->id,
+        forum_set_user_maildigest($anonforum1, 1, $user);
+        $currentsetting = $DB->get_record('anonforum_digests', array(
+            'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 1);
 
-        forum_set_user_maildigest($forum1, 2, $user);
-        $currentsetting = $DB->get_record('forum_digests', array(
-            'forum' => $forum1->id,
+        forum_set_user_maildigest($anonforum1, 2, $user);
+        $currentsetting = $DB->get_record('anonforum_digests', array(
+            'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 2);
 
         // And the default value - this should delete the record again
-        forum_set_user_maildigest($forum1, -1, $user);
-        $currentsetting = $DB->get_record('forum_digests', array(
-            'forum' => $forum1->id,
+        forum_set_user_maildigest($anonforum1, -1, $user);
+        $currentsetting = $DB->get_record('anonforum_digests', array(
+            'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertFalse($currentsetting);
 
         // Try with an invalid value.
         $this->setExpectedException('moodle_exception');
-        forum_set_user_maildigest($forum1, 42, $user);
+        forum_set_user_maildigest($anonforum1, 42, $user);
     }
 
-    public function test_mod_forum_get_user_digest_options_default() {
+    public function test_mod_anonforum_get_user_digest_options_default() {
         global $USER, $DB;
 
         $this->resetAfterTest(true);
@@ -119,30 +119,30 @@ class mod_forum_maildigest_testcase extends advanced_testcase {
 
         // We test against these options.
         $digestoptions = array(
-            '0' => get_string('emaildigestoffshort', 'mod_forum'),
-            '1' => get_string('emaildigestcompleteshort', 'mod_forum'),
-            '2' => get_string('emaildigestsubjectsshort', 'mod_forum'),
+            '0' => get_string('emaildigestoffshort', 'mod_anonforum'),
+            '1' => get_string('emaildigestcompleteshort', 'mod_anonforum'),
+            '2' => get_string('emaildigestsubjectsshort', 'mod_anonforum'),
         );
 
         // The default settings is 0.
         $this->assertEquals(0, $user->maildigest);
         $options = forum_get_user_digest_options();
-        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_forum', $digestoptions[0]));
+        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[0]));
 
         // Update the setting to 1.
         $USER->maildigest = 1;
         $this->assertEquals(1, $USER->maildigest);
         $options = forum_get_user_digest_options();
-        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_forum', $digestoptions[1]));
+        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[1]));
 
         // Update the setting to 2.
         $USER->maildigest = 2;
         $this->assertEquals(2, $USER->maildigest);
         $options = forum_get_user_digest_options();
-        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_forum', $digestoptions[2]));
+        $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[2]));
     }
 
-    public function test_mod_forum_get_user_digest_options_sorting() {
+    public function test_mod_anonforum_get_user_digest_options_sorting() {
         global $USER, $DB;
 
         $this->resetAfterTest(true);
