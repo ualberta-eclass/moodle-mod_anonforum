@@ -1,11 +1,11 @@
 @mod @mod_anonforum
-Feature: Add forum activities and discussions
+Feature: Add anonymous forum activities and discussions
   In order to discuss topics with other users
   As a teacher
-  I need to add forum activities to moodle courses
+  I need to add anonymous forum activities to moodle courses
 
   @javascript
-  Scenario: Add a forum and a discussion
+  Scenario: Add a anonymous forum and a discussion
     Given the following "users" exists:
       | username | firstname | lastname | email |
       | teacher1 | Teacher | 1 | teacher1@asd.com |
@@ -18,11 +18,11 @@ Feature: Add forum activities and discussions
     And I log in as "teacher1"
     And I follow "Course 1"
     And I turn editing mode on
-    And I add a "Forum" to section "1" and I fill the form with:
-      | Forum name | Test forum name |
-      | Forum type | Standard forum for general use |
-      | Description | Test forum description |
-    When I add a new discussion to "Test forum name" forum with:
-      | Subject | Forum post 1 |
+    And I add a "Anonymous forum" to section "1" and I fill the form with:
+      | Anonymous forum name | Test anonymous forum name |
+      | Anonymous forum type | Standard anonymous forum for general use |
+      | Description | Test anonymous forum description |
+    When I add a new discussion to "Test anonymous forum name" forum with:
+      | Subject | Anonymous forum post 1 |
       | Message | This is the body |
-    Then I should see "Test forum name"
+    Then I should see "Test anonymous forum name"

@@ -1,8 +1,8 @@
 @mod @mod_anonforum
-Feature: Students can edit or delete their forum posts within a set time limit
-  In order to refine forum posts
+Feature: Students can edit or delete their anonymous forum posts within a set time limit
+  In order to refine anonymous forum posts
   As a user
-  I need to edit or delete my forum posts within a certain period of time after posting
+  I need to edit or delete my anonymous forum posts within a certain period of time after posting
 
   Background:
     Given the following "users" exists:
@@ -23,19 +23,19 @@ Feature: Students can edit or delete their forum posts within a set time limit
     And I am on homepage
     And I follow "Course 1"
     And I turn editing mode on
-    And I add a "Forum" to section "1" and I fill the form with:
-      | Forum name | Test forum name |
-      | Forum type | Standard forum for general use |
-      | Description | Test forum description |
+    And I add a "Anonymous forum" to section "1" and I fill the form with:
+      | Anonymous forum name | Test anonymous forum name |
+      | Anonymous forum type | Standard anonymous forum for general use |
+      | Description | Test anonymous forum description |
     And I log out
     And I follow "Course 1"
     And I log in as "student1"
-    And I add a new discussion to "Test forum name" forum with:
-      | Subject | Forum post subject |
+    And I add a new discussion to "Test anonymous forum name" anonymous forum with:
+      | Subject | Anonymous forum post subject |
       | Message | This is the body |
 
-  Scenario: Edit forum post
-    When I follow "Forum post subject"
+  Scenario: Edit anonymous forum post
+    When I follow "Anonymous forum post subject"
     And I follow "Edit"
     And I fill the moodle form with:
       | Subject | Edited post subject |
@@ -46,15 +46,15 @@ Feature: Students can edit or delete their forum posts within a set time limit
     And I should see "Edited post body"
 
   @javascript
-  Scenario: Delete forum post
-    When I follow "Forum post subject"
+  Scenario: Delete anonymous forum post
+    When I follow "Anonymous forum post subject"
     And I follow "Delete"
     And I press "Continue"
-    Then I should not see "Forum post subject"
+    Then I should not see "Anonymous forum post subject"
 
   @javascript
   Scenario: Time limit expires
     When I wait "70" seconds
-    And I follow "Forum post subject"
+    And I follow "Anonymous forum post subject"
     Then I should not see "Edit" in the "region-main" "region"
     And I should not see "Delete" in the "region-main" "region"

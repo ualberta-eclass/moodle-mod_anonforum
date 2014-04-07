@@ -1,8 +1,8 @@
 @mod @mod_anonforum
-Feature: Single simple forum discussion type
+Feature: Single simple anonymous forum discussion type
   In order to restrict the discussion topic to one
   As a teacher
-  I need to create a forum with a single simple discussion
+  I need to create a anonymous forum with a single simple discussion
 
   Background:
     Given the following "users" exists:
@@ -19,15 +19,15 @@ Feature: Single simple forum discussion type
     And I log in as "teacher1"
     And I follow "Course 1"
     And I turn editing mode on
-    And I add a "Forum" to section "1" and I fill the form with:
-      | Forum name | Single discussion forum name |
-      | Forum type | A single simple discussion |
-      | Description | Single discussion forum description |
+    And I add a "Anonymous forum" to section "1" and I fill the form with:
+      | Anonymous forum name | Single discussion anonymous forum name |
+      | Anonymous forum type | A single simple discussion |
+      | Description | Single discussion anonymous forum description |
 
   @javascript
   Scenario: Teacher can start the single simple discussion
-    When I follow "Single discussion forum name"
-    Then I should see "Single discussion forum description" in the "div.firstpost.starter" "css_element"
+    When I follow "Single discussion anonymous forum name"
+    Then I should see "Single discussion anonymous forum description" in the "div.firstpost.starter" "css_element"
     And I should not see "Add a new discussion topic"
 
   @javascript
@@ -35,7 +35,7 @@ Feature: Single simple forum discussion type
     Given I log out
     And I log in as "student1"
     And I follow "Course 1"
-    When I reply "Single discussion forum name" post from "Single discussion forum name" forum with:
+    When I reply "Single discussion anonymous forum name" post from "Single discussion anonymous forum name" anonymous forum with:
       | Subject | Reply to single discussion subject |
       | Message | Reply to single discussion message |
     Then I should not see "Add a new discussion topic"

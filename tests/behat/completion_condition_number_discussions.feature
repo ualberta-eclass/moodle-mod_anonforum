@@ -1,8 +1,8 @@
 @mod @mod_anonforum
-Feature: Set a certain number of discussions as a completion condition for a forum
-  In order to ensure students are participating on forums
+Feature: Set a certain number of discussions as a completion condition for a anonymous forum
+  In order to ensure students are participating on anonymous forums
   As a teacher
-  I need to set a minimum number of discussions to mark the forum activity as completed
+  I need to set a minimum number of discussions to mark the anonymous forum activity as completed
 
   @javascript
   Scenario: Set X number of discussions as a condition
@@ -29,25 +29,25 @@ Feature: Set a certain number of discussions as a completion condition for a for
     And I fill the moodle form with:
       | Enable completion tracking | Yes |
     And I press "Save changes"
-    When I add a "Forum" to section "1" and I fill the form with:
-      | Forum name | Test forum name |
-      | Description | Test forum description |
+    When I add a "Anonymous forum" to section "1" and I fill the form with:
+      | Anonymous forum name | Test Anonymous forum name |
+      | Description | Test anonymous forum description |
       | Completion tracking | Show activity as complete when conditions are met |
       | completiondiscussionsenabled | 1 |
       | completiondiscussions | 2 |
     And I log out
     And I log in as "student1"
     And I follow "Course 1"
-    Then I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[@alt='Not completed: Test forum name']" "xpath_element"
-    And I add a new discussion to "Test forum name" forum with:
+    Then I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[@alt='Not completed: Test anonymous forum name']" "xpath_element"
+    And I add a new discussion to "Test anonymous anonymous forum name" anonymous forum with:
       | Subject | Post 1 subject |
       | Message | Body 1 content |
-    And I add a new discussion to "Test forum name" forum with:
+    And I add a new discussion to "Test anonymous forum name" anonymous forum with:
       | Subject | Post 2 subject |
       | Message | Body 2 content |
     And I follow "Course 1"
-    And I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[contains(@alt, 'Completed: Test forum name')]" "xpath_element"
+    And I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[contains(@alt, 'Completed: Test anonymous forum name')]" "xpath_element"
     And I log out
     And I log in as "teacher1"
     And I follow "Course 1"
-    And "Student 1" user has completed "Test forum name" activity
+    And "Student 1" user has completed "Test anonymous forum name" activity

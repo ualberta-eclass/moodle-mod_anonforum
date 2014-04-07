@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Steps definitions related with the forum activity.
+ * Steps definitions related with the anonymous forum activity.
  *
  * @package    mod_anonforum
  * @category   test
@@ -30,7 +30,7 @@ require_once(__DIR__ . '/../../../../lib/behat/behat_base.php');
 use Behat\Behat\Context\Step\Given as Given,
     Behat\Gherkin\Node\TableNode as TableNode;
 /**
- * Forum-related steps definitions.
+ * Anonymous forum-related steps definitions.
  *
  * @package    mod_anonforum
  * @category   test
@@ -40,9 +40,9 @@ use Behat\Behat\Context\Step\Given as Given,
 class behat_mod_anonforum extends behat_base {
 
     /**
-     * Adds a discussion to the forum specified by it's name with the provided table data (usually Subject and Message). The step begins from the forum's course page.
+     * Adds a discussion to the anonymous forum specified by it's name with the provided table data (usually Subject and Message). The step begins from the forum's course page.
      *
-     * @Given /^I add a new discussion to "(?P<anonforum_name_string>(?:[^"]|\\")*)" forum with:$/
+     * @Given /^I add a new discussion to "(?P<anonforum_name_string>(?:[^"]|\\")*)" anonymous forum with:$/
      * @param string $anonforumname
      * @param TableNode $table
      */
@@ -53,17 +53,17 @@ class behat_mod_anonforum extends behat_base {
             new Given('I follow "' . $this->escape($anonforumname) . '"'),
             new Given('I press "' . get_string('addanewdiscussion', 'anonforum') . '"'),
             new Given('I fill the moodle form with:', $table),
-            new Given('I press "' . get_string('posttoforum', 'anonforum') . '"'),
+            new Given('I press "' . get_string('posttoanonforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
     }
 
     /**
-     * Adds a reply to the specified post of the specified forum. The step begins from the forum's page or from the forum's course page.
+     * Adds a reply to the specified post of the specified anonymous forum. The step begins from the anonymous forum's page or from the anonymous forum's course page.
      *
-     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post from "(?P<anonforum_name_string>(?:[^"]|\\")*)" forum with:$/
+     * @Given /^I reply "(?P<post_subject_string>(?:[^"]|\\")*)" post from "(?P<anonforum_name_string>(?:[^"]|\\")*)" anonymous forum with:$/
      * @param string $postname The subject of the post
-     * @param string $anonforumname The forum name
+     * @param string $anonforumname The anonymous forum name
      * @param TableNode $table
      */
     public function i_reply_post_from_anonforum_with($postsubject, $anonforumname, TableNode $table) {
@@ -73,7 +73,7 @@ class behat_mod_anonforum extends behat_base {
             new Given('I follow "' . $this->escape($postsubject) . '"'),
             new Given('I follow "' . get_string('reply', 'anonforum') . '"'),
             new Given('I fill the moodle form with:', $table),
-            new Given('I press "' . get_string('posttoforum', 'anonforum') . '"'),
+            new Given('I press "' . get_string('posttoanonforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
 

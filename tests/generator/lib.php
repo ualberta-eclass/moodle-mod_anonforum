@@ -34,17 +34,17 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2012 Petr Skoda {@link http://skodak.org}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class mod_anon_generator extends testing_module_generator {
+class mod_anonforum_generator extends testing_module_generator {
 
     /**
      * @var int keep track of how many anonymous forum discussions have been created.
      */
-    protected $anondiscussioncount = 0;
+    protected $anonforumdiscussioncount = 0;
 
     /**
      * @var int keep track of how many anonymous forum posts have been created.
      */
-    protected $anonpostcount = 0;
+    protected $anonforumpostcount = 0;
 
     /**
      * To be called from data reset code only,
