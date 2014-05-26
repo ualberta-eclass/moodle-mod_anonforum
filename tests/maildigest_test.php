@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -60,7 +59,7 @@ class mod_anonforum_maildigest_testcase extends advanced_testcase {
             $DB->count_records_select('anonforum', 'id ' . $test, $params));
 
         // Enrol the user in the courses.
-        // DataGenerator->enrol_user automatically sets a role for the user
+        // DataGenerator->enrol_user automatically sets a role for the user.
         $this->getDataGenerator()->enrol_user($user->id, $course1->id, null, 'manual');
 
         // Confirm that there is no current value.
@@ -72,29 +71,29 @@ class mod_anonforum_maildigest_testcase extends advanced_testcase {
 
         // Test with each of the valid values:
         // 0, 1, and 2 are valid values.
-        forum_set_user_maildigest($anonforum1, 0, $user);
+        anonforum_set_user_maildigest($anonforum1, 0, $user);
         $currentsetting = $DB->get_record('anonforum_digests', array(
             'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 0);
 
-        forum_set_user_maildigest($anonforum1, 1, $user);
+        anonforum_set_user_maildigest($anonforum1, 1, $user);
         $currentsetting = $DB->get_record('anonforum_digests', array(
             'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 1);
 
-        forum_set_user_maildigest($anonforum1, 2, $user);
+        anonforum_set_user_maildigest($anonforum1, 2, $user);
         $currentsetting = $DB->get_record('anonforum_digests', array(
             'anonforum' => $anonforum1->id,
             'userid' => $user->id,
         ));
         $this->assertEquals($currentsetting->maildigest, 2);
 
-        // And the default value - this should delete the record again
-        forum_set_user_maildigest($anonforum1, -1, $user);
+        // And the default value - this should delete the record again.
+        anonforum_set_user_maildigest($anonforum1, -1, $user);
         $currentsetting = $DB->get_record('anonforum_digests', array(
             'anonforum' => $anonforum1->id,
             'userid' => $user->id,
@@ -103,7 +102,7 @@ class mod_anonforum_maildigest_testcase extends advanced_testcase {
 
         // Try with an invalid value.
         $this->setExpectedException('moodle_exception');
-        forum_set_user_maildigest($anonforum1, 42, $user);
+        anonforum_set_user_maildigest($anonforum1, 42, $user);
     }
 
     public function test_mod_anonforum_get_user_digest_options_default() {
@@ -126,19 +125,19 @@ class mod_anonforum_maildigest_testcase extends advanced_testcase {
 
         // The default settings is 0.
         $this->assertEquals(0, $user->maildigest);
-        $options = forum_get_user_digest_options();
+        $options = anonforum_get_user_digest_options();
         $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[0]));
 
         // Update the setting to 1.
         $USER->maildigest = 1;
         $this->assertEquals(1, $USER->maildigest);
-        $options = forum_get_user_digest_options();
+        $options = anonforum_get_user_digest_options();
         $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[1]));
 
         // Update the setting to 2.
         $USER->maildigest = 2;
         $this->assertEquals(2, $USER->maildigest);
-        $options = forum_get_user_digest_options();
+        $options = anonforum_get_user_digest_options();
         $this->assertEquals($options[-1], get_string('emaildigestdefault', 'mod_anonforum', $digestoptions[2]));
     }
 
@@ -154,7 +153,7 @@ class mod_anonforum_maildigest_testcase extends advanced_testcase {
         self::setUser($user);
 
         // Retrieve the list of applicable options.
-        $options = forum_get_user_digest_options();
+        $options = anonforum_get_user_digest_options();
 
         // The default option must always be at the top of the list.
         $lastoption = -2;

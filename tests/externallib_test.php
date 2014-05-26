@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -231,11 +230,13 @@ class mod_anonforum_external_testcase extends externallib_advanced_testcase {
                 array('anonforum1' => $anonforum1->id, 'anonforum2' => $anonforum2->id, 'anonforum3' => $anonforum3->id)));
 
         // Check the discussions were correctly created.
-        $this->assertEquals(3, $DB->count_records_select('anonforum_discussions', 'anonforum = :anonforum1 OR forum = :anonforum2
-                OR id = :anonforum3', array('anonforum1' => $anonforum1->id, 'anonforum2' => $anonforum2->id, 'anonforum3' => $anonforum3->id)));
+        $this->assertEquals(3, $DB->count_records_select('anonforum_discussions',
+            'anonforum = :anonforum1 OR anonforum = :anonforum2 OR id = :anonforum3',
+            array('anonforum1' => $anonforum1->id, 'anonforum2' => $anonforum2->id, 'anonforum3' => $anonforum3->id)));
 
         // Check the posts were correctly created, don't forget each discussion created also creates a post.
-        $this->assertEquals(7, $DB->count_records_select('anonforum_posts', 'discussion = :discussion1 OR discussion = :discussion2',
+        $this->assertEquals(7, $DB->count_records_select('anonforum_posts',
+            'discussion = :discussion1 OR discussion = :discussion2',
                 array('discussion1' => $discussion1->id, 'discussion2' => $discussion2->id)));
 
         // Enrol the user in the first course.

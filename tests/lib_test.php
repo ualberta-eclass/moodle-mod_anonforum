@@ -51,7 +51,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
 
         $data = new stdClass();
         $sink = $this->redirectEvents();
-        forum_trigger_content_uploaded_event($fakepost, $cm, 'some triggered from value');
+        anonforum_trigger_content_uploaded_event($fakepost, $cm, 'some triggered from value');
         $events = $sink->get_events();
 
         $this->assertCount(1, $events);
@@ -140,18 +140,18 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $this->getDataGenerator()->get_plugin_generator('mod_anonforum')->create_post($record);
 
         // User 3 hasn't posted anything, so shouldn't get any results.
-        $user3courses = forum_get_courses_user_posted_in($user3);
+        $user3courses = anonforum_get_courses_user_posted_in($user3);
         $this->assertEmpty($user3courses);
 
         // User 2 has only posted in course3.
-        $user2courses = forum_get_courses_user_posted_in($user2);
+        $user2courses = anonforum_get_courses_user_posted_in($user2);
         $this->assertCount(1, $user2courses);
         $user2course = array_shift($user2courses);
         $this->assertEquals($course3->id, $user2course->id);
         $this->assertEquals($course3->shortname, $user2course->shortname);
 
         // User 1 has posted in all 3 courses.
-        $user1courses = forum_get_courses_user_posted_in($user1);
+        $user1courses = anonforum_get_courses_user_posted_in($user1);
         $this->assertCount(3, $user1courses);
         foreach ($user1courses as $course) {
             $this->assertContains($course->id, array($course1->id, $course2->id, $course3->id));
@@ -161,7 +161,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         }
 
         // User 1 has only started a discussion in course 1 and 2 though.
-        $user1courses = forum_get_courses_user_posted_in($user1, true);
+        $user1courses = anonforum_get_courses_user_posted_in($user1, true);
         $this->assertCount(2, $user1courses);
         foreach ($user1courses as $course) {
             $this->assertContains($course->id, array($course1->id, $course2->id));
@@ -203,7 +203,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
     }
 
     /**
-     * Test the logic in the forum_tp_can_track_anonforums() function.
+     * Test the logic in the anonforum_tp_can_track_anonforums() function.
      */
     public function test_anonforum_tp_can_track_anonforums() {
         global $CFG;
@@ -225,55 +225,55 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
-        // User on, forum off, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoff, $useron);
+        // User on, anonforum off, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoff, $useron);
         $this->assertEquals(false, $result);
 
-        // User on, forum on, should be on.
-        $result = forum_tp_can_track_anonforums($anonforumforce, $useron);
+        // User on, anonforum on, should be on.
+        $result = anonforum_tp_can_track_anonforums($anonforumforce, $useron);
         $this->assertEquals(true, $result);
 
-        // User on, forum optional, should be on.
-        $result = forum_tp_can_track_anonforums($anonforumoptional, $useron);
+        // User on, anonforum optional, should be on.
+        $result = anonforum_tp_can_track_anonforums($anonforumoptional, $useron);
         $this->assertEquals(true, $result);
 
-        // User off, forum off, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoff, $useroff);
+        // User off, anonforum off, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoff, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum force, should be on.
-        $result = forum_tp_can_track_anonforums($anonforumforce, $useroff);
+        // User off, anonforum force, should be on.
+        $result = anonforum_tp_can_track_anonforums($anonforumforce, $useroff);
         $this->assertEquals(true, $result);
 
-        // User off, forum optional, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoptional, $useroff);
+        // User off, anonforum optional, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
 
         // Don't allow force.
         $CFG->anonforum_allowforcedreadtracking = 0;
 
-        // User on, forum off, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoff, $useron);
+        // User on, anonforum off, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoff, $useron);
         $this->assertEquals(false, $result);
 
-        // User on, forum on, should be on.
-        $result = forum_tp_can_track_anonforums($anonforumforce, $useron);
+        // User on, anonforum on, should be on.
+        $result = anonforum_tp_can_track_anonforums($anonforumforce, $useron);
         $this->assertEquals(true, $result);
 
-        // User on, forum optional, should be on.
-        $result = forum_tp_can_track_anonforums($anonforumoptional, $useron);
+        // User on, anonforum optional, should be on.
+        $result = anonforum_tp_can_track_anonforums($anonforumoptional, $useron);
         $this->assertEquals(true, $result);
 
-        // User off, forum off, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoff, $useroff);
+        // User off, anonforum off, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoff, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum force, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumforce, $useroff);
+        // User off, anonforum force, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumforce, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum optional, should be off.
-        $result = forum_tp_can_track_anonforums($anonforumoptional, $useroff);
+        // User off, anonforum optional, should be off.
+        $result = anonforum_tp_can_track_anonforums($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
 
     }
@@ -301,104 +301,104 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
-        // User on, forum off, should be off.
-        $result = forum_tp_is_tracked($anonforumoff, $useron);
+        // User on, anonforum off, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoff, $useron);
         $this->assertEquals(false, $result);
 
-        // User on, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useron);
+        // User on, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useron);
         $this->assertEquals(true, $result);
 
-        // User on, forum optional, should be on.
-        $result = forum_tp_is_tracked($anonforumoptional, $useron);
+        // User on, anonforum optional, should be on.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useron);
         $this->assertEquals(true, $result);
 
-        // User off, forum off, should be off.
-        $result = forum_tp_is_tracked($anonforumoff, $useroff);
+        // User off, anonforum off, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoff, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useroff);
+        // User off, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useroff);
         $this->assertEquals(true, $result);
 
-        // User off, forum optional, should be off.
-        $result = forum_tp_is_tracked($anonforumoptional, $useroff);
+        // User off, anonforum optional, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
 
         // Don't allow force.
         $CFG->anonforum_allowforcedreadtracking = 0;
 
-        // User on, forum off, should be off.
-        $result = forum_tp_is_tracked($anonforumoff, $useron);
+        // User on, anonforum off, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoff, $useron);
         $this->assertEquals(false, $result);
 
-        // User on, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useron);
+        // User on, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useron);
         $this->assertEquals(true, $result);
 
-        // User on, forum optional, should be on.
-        $result = forum_tp_is_tracked($anonforumoptional, $useron);
+        // User on, anonforum optional, should be on.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useron);
         $this->assertEquals(true, $result);
 
-        // User off, forum off, should be off.
-        $result = forum_tp_is_tracked($anonforumoff, $useroff);
+        // User off, anonforum off, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoff, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum force, should be off.
-        $result = forum_tp_is_tracked($anonforumforce, $useroff);
+        // User off, anonforum force, should be off.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, forum optional, should be off.
-        $result = forum_tp_is_tracked($anonforumoptional, $useroff);
+        // User off, anonforum optional, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
 
         // Stop tracking so we can test again.
-        forum_tp_stop_tracking($anonforumforce->id, $useron->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useron->id);
-        forum_tp_stop_tracking($anonforumforce->id, $useroff->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
 
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
-        // User on, preference off, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useron);
+        // User on, preference off, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useron);
         $this->assertEquals(true, $result);
 
-        // User on, preference off, forum optional, should be on.
-        $result = forum_tp_is_tracked($anonforumoptional, $useron);
+        // User on, preference off, anonforum optional, should be on.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useron);
         $this->assertEquals(false, $result);
 
-        // User off, preference off, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useroff);
+        // User off, preference off, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useroff);
         $this->assertEquals(true, $result);
 
-        // User off, preference off, forum optional, should be off.
-        $result = forum_tp_is_tracked($anonforumoptional, $useroff);
+        // User off, preference off, anonforum optional, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
 
         // Don't allow force.
         $CFG->anonforum_allowforcedreadtracking = 0;
 
-        // User on, preference off, forum force, should be on.
-        $result = forum_tp_is_tracked($anonforumforce, $useron);
+        // User on, preference off, anonforum force, should be on.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useron);
         $this->assertEquals(false, $result);
 
-        // User on, preference off, forum optional, should be on.
-        $result = forum_tp_is_tracked($anonforumoptional, $useron);
+        // User on, preference off, anonforum optional, should be on.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useron);
         $this->assertEquals(false, $result);
 
-        // User off, preference off, forum force, should be off.
-        $result = forum_tp_is_tracked($anonforumforce, $useroff);
+        // User off, preference off, anonforum force, should be off.
+        $result = anonforum_tp_is_tracked($anonforumforce, $useroff);
         $this->assertEquals(false, $result);
 
-        // User off, preference off, forum optional, should be off.
-        $result = forum_tp_is_tracked($anonforumoptional, $useroff);
+        // User off, preference off, anonforum optional, should be off.
+        $result = anonforum_tp_is_tracked($anonforumoptional, $useroff);
         $this->assertEquals(false, $result);
     }
 
     /**
-     * Test the logic in the forum_tp_get_course_unread_posts() function.
+     * Test the logic in the anonforum_tp_get_course_unread_posts() function.
      */
     public function test_anonforum_tp_get_course_unread_posts() {
         global $CFG;
@@ -417,14 +417,14 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $options = array('course' => $course->id, 'trackingtype' => FORUM_TRACKING_OPTIONAL); // Optional.
         $anonforumoptional = $this->getDataGenerator()->create_module('anonforum', $options);
 
-        // Add discussions to the tracking off forum.
+        // Add discussions to the tracking off anonforum.
         $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $useron->id;
         $record->anonforum = $anonforumoff->id;
         $discussionoff = $this->getDataGenerator()->get_plugin_generator('mod_anonforum')->create_discussion($record);
 
-        // Add discussions to the tracking forced forum.
+        // Add discussions to the tracking forced anonforum.
         $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $useron->id;
@@ -439,7 +439,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $record->discussion = $discussionforce->id;
         $this->getDataGenerator()->get_plugin_generator('mod_anonforum')->create_post($record);
 
-        // Add discussions to the tracking optional forum.
+        // Add discussions to the tracking optional anonforum.
         $record = new stdClass();
         $record->course = $course->id;
         $record->userid = $useron->id;
@@ -449,7 +449,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
-        $result = forum_tp_get_course_unread_posts($useron->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useron->id, $course->id);
         $this->assertEquals(2, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
@@ -457,7 +457,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
         $this->assertEquals(1, $result[$anonforumoptional->id]->unread);
 
-        $result = forum_tp_get_course_unread_posts($useroff->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useroff->id, $course->id);
         $this->assertEquals(1, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
@@ -467,7 +467,7 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         // Don't allow force.
         $CFG->anonforum_allowforcedreadtracking = 0;
 
-        $result = forum_tp_get_course_unread_posts($useron->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useron->id, $course->id);
         $this->assertEquals(2, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
@@ -475,29 +475,29 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
         $this->assertEquals(1, $result[$anonforumoptional->id]->unread);
 
-        $result = forum_tp_get_course_unread_posts($useroff->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useroff->id, $course->id);
         $this->assertEquals(0, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(false, isset($result[$anonforumforce->id]));
         $this->assertEquals(false, isset($result[$anonforumoptional->id]));
 
         // Stop tracking so we can test again.
-        forum_tp_stop_tracking($anonforumforce->id, $useron->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useron->id);
-        forum_tp_stop_tracking($anonforumforce->id, $useroff->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
 
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
-        $result = forum_tp_get_course_unread_posts($useron->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useron->id, $course->id);
         $this->assertEquals(1, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
         $this->assertEquals(2, $result[$anonforumforce->id]->unread);
         $this->assertEquals(false, isset($result[$anonforumoptional->id]));
 
-        $result = forum_tp_get_course_unread_posts($useroff->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useroff->id, $course->id);
         $this->assertEquals(1, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
@@ -507,13 +507,13 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         // Don't allow force.
         $CFG->anonforum_allowforcedreadtracking = 0;
 
-        $result = forum_tp_get_course_unread_posts($useron->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useron->id, $course->id);
         $this->assertEquals(0, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(false, isset($result[$anonforumforce->id]));
         $this->assertEquals(false, isset($result[$anonforumoptional->id]));
 
-        $result = forum_tp_get_course_unread_posts($useroff->id, $course->id);
+        $result = anonforum_tp_get_course_unread_posts($useroff->id, $course->id);
         $this->assertEquals(0, count($result));
         $this->assertEquals(false, isset($result[$anonforumoff->id]));
         $this->assertEquals(false, isset($result[$anonforumforce->id]));
@@ -544,12 +544,12 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $CFG->anonforum_allowforcedreadtracking = 1;
 
         // On user with force on.
-        $result = forum_tp_get_untracked_anonforums($useron->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useron->id, $course->id);
         $this->assertEquals(1, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
 
         // Off user with force on.
-        $result = forum_tp_get_untracked_anonforums($useroff->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useroff->id, $course->id);
         $this->assertEquals(2, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
@@ -558,34 +558,34 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $CFG->anonforum_allowforcedreadtracking = 0;
 
         // On user with force off.
-        $result = forum_tp_get_untracked_anonforums($useron->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useron->id, $course->id);
         $this->assertEquals(1, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
 
         // Off user with force off.
-        $result = forum_tp_get_untracked_anonforums($useroff->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useroff->id, $course->id);
         $this->assertEquals(3, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
 
         // Stop tracking so we can test again.
-        forum_tp_stop_tracking($anonforumforce->id, $useron->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useron->id);
-        forum_tp_stop_tracking($anonforumforce->id, $useroff->id);
-        forum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useron->id);
+        anonforum_tp_stop_tracking($anonforumforce->id, $useroff->id);
+        anonforum_tp_stop_tracking($anonforumoptional->id, $useroff->id);
 
         // Allow force.
         $CFG->anonforum_allowforcedreadtracking = 1;
 
         // On user with force on.
-        $result = forum_tp_get_untracked_anonforums($useron->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useron->id, $course->id);
         $this->assertEquals(2, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
 
         // Off user with force on.
-        $result = forum_tp_get_untracked_anonforums($useroff->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useroff->id, $course->id);
         $this->assertEquals(2, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
@@ -594,14 +594,14 @@ class mod_anonforum_lib_testcase extends advanced_testcase {
         $CFG->anonforum_allowforcedreadtracking = 0;
 
         // On user with force off.
-        $result = forum_tp_get_untracked_anonforums($useron->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useron->id, $course->id);
         $this->assertEquals(3, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));
         $this->assertEquals(true, isset($result[$anonforumforce->id]));
 
         // Off user with force off.
-        $result = forum_tp_get_untracked_anonforums($useroff->id, $course->id);
+        $result = anonforum_tp_get_untracked_anonforums($useroff->id, $course->id);
         $this->assertEquals(3, count($result));
         $this->assertEquals(true, isset($result[$anonforumoff->id]));
         $this->assertEquals(true, isset($result[$anonforumoptional->id]));

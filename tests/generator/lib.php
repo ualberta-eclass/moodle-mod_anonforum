@@ -145,6 +145,10 @@ class mod_anonforum_generator extends testing_module_generator {
             $record['mailnow'] = "0";
         }
 
+        if (!isset($record['anonymouspost'])) {
+            $record['anonymouspost'] = "0";
+        }
+
         $record = (object) $record;
 
         // Add the discussion.
@@ -223,9 +227,11 @@ class mod_anonforum_generator extends testing_module_generator {
         } else {
             // Create post.
             if (empty($record['parent'])) {
-                $record['parent'] = $DB->get_field('anonforum_discussions', 'firstpost', array('id' => $record['discussion']), MUST_EXIST);
+                $record['parent'] = $DB->get_field('anonforum_discussions', 'firstpost',
+                    array('id' => $record['discussion']), MUST_EXIST);
             } else if (empty($record['discussion'])) {
-                $record['discussion'] = $DB->get_field('anonforum_posts', 'discussion', array('id' => $record['parent']), MUST_EXIST);
+                $record['discussion'] = $DB->get_field('anonforum_posts', 'discussion',
+                    array('id' => $record['parent']), MUST_EXIST);
             }
             $post = $this->create_post($record);
         }
