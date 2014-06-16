@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -81,10 +80,9 @@ function xmldb_anonforum_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2013021200, 'anonforum');
     }
 
-
     // Moodle v2.5.0 release upgrade line.
     // Put any upgrade step following this.
-    if ($oldversion < 2013071000) {
+    if ($oldversion < 2013110500) {
         // Define table anonforum_digests to be created.
         $table = new xmldb_table('anonforum_digests');
 
@@ -106,28 +104,7 @@ function xmldb_anonforum_upgrade($oldversion) {
         }
 
         // Anonymous forum savepoint reached.
-        upgrade_mod_savepoint(true, 2013071000, 'anonforum');
-    }
-
-    if ($oldversion < 2013081402) {
-
-        // Define field anonymous to be added to anonymous forum
-        $table = new xmldb_table('anonforum');
-        $field = new xmldb_field('anonymous', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'displaywordcount');
-        $tablepost = new xmldb_table('anonforum_posts');
-        $fieldpost = new xmldb_field('anonymouspost', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'mailnow');
-
-        // Conditionally launch add field anonymous
-        if (!$dbman->field_exists($table, $field)) {
-            $dbman->add_field($table, $field);
-        }
-        // Conditionally launch add field anonymous
-        if (!$dbman->field_exists($tablepost, $fieldpost)) {
-            $dbman->add_field($tablepost, $fieldpost);
-        }
-
-        // Anonymous forum savepoint reached
-        upgrade_mod_savepoint(true, 2013081402, 'anonforum');
+        upgrade_mod_savepoint(true, 2013110500, 'anonforum');
     }
 
     // Moodle v2.6.0 release upgrade line.
