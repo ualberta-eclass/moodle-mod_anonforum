@@ -81,7 +81,7 @@ if ($move > 0 and confirm_sesskey()) {
         print_error('cannotmovetonotfound', 'anonforum', $return);
     }
 
-    if (!coursemodule_visible_for_user($cmto)) {
+    if(!\core_availability\info_module::is_user_visible($cm, $userid, false)) {
         print_error('cannotmovenotvisible', 'anonforum', $return);
     }
 
@@ -92,7 +92,21 @@ if ($move > 0 and confirm_sesskey()) {
     }
     $DB->set_field('anonforum_discussions', 'anonforum', $anonforumto->id, array('id' => $discussion->id));
     $DB->set_field('anonforum_read', 'anonforumid', $anonforumto->id, array('discussionid' => $discussion->id));
-    add_to_log($course->id, 'anonforum', 'move discussion', "discuss.php?d=$discussion->id", $discussion->id, $cmto->id);
+
+    $params = array(
+        'context' => $destinationctx,
+        'objectid' => $discussion->id,
+        'anonymous' => 1,
+        'other' => array(
+            'fromanonforumid' => $anonforum->id,
+            'toanonforumid' => $forumto->id
+        )
+    );
+    $event = \mod_anonforum\event\discussion_moved::create($params);
+    $event->add_record_snapshot('anonforum_discussions', $discussion);
+    $event->add_record_snapshot('anonforum', $anonforum);
+    $event->add_record_snapshot('anonforum', $forumto);
+    $event->trigger();
 
     // Delete the RSS files for the 2  anonymous forums to force regeneration of the feeds
     require_once($CFG->dirroot.'/mod/anonforum/rsslib.php');
@@ -103,7 +117,15 @@ if ($move > 0 and confirm_sesskey()) {
 }
 
 if(empty($anonforum->anonymous)) {
-    add_to_log($course->id, 'anonforum', 'view discussion', "discuss.php?d=$discussion->id", $discussion->id, $cm->id);
+    $params = array(
+        'context' => $modcontext,
+        'objectid' => $discussion->id,
+        'anonymous' => 1
+    );
+    $event = \mod_anonforum\event\discussion_viewed::create($params);
+    $event->add_record_snapshot('anonforum_discussions', $discussion);
+    $event->add_record_snapshot('anonforum', $anonforum);
+    $event->trigger();
 }
 
 unset($SESSION->fromdiscussion);

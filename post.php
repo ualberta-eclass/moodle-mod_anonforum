@@ -337,8 +337,18 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                 anonforum_delete_discussion($discussion, false, $course, $cm, $anonforum);
 
                 if (empty($post->anonymouspost)) {
-                    add_to_log($discussion->course, "anonforum", "delete discussion",
-                        "view.php?id=$cm->id", "$anonforum->id", $cm->id);
+                    $params = array(
+                        'objectid' => $discussion->id,
+                        'context' => $modcontext,
+                        'anonymous' => 1,
+                        'other' => array(
+                            'forumid' => $anonforum->id, '$cm->id' => $cm->id
+                        )
+                    );
+
+                    $event = \mod_anonforum\event\discussion_deleted::create($params);
+                    $event->add_record_snapshot('forum_discussions', $discussion);
+                    $event->trigger();
                 }
                 redirect("view.php?f=$discussion->anonforum");
 
@@ -354,7 +364,25 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                     $discussionurl = "discuss.php?d=$post->discussion";
                 }
                 if (empty($post->anonymouspost)) {
-                    add_to_log($discussion->course, "anonforum", "delete post", $discussionurl, "$post->id", $cm->id);
+                    $params = array(
+                        'context' => $modcontext,
+                        'objectid' => $post->id,
+                        'anonymous' => 1,
+                        'other' => array(
+                            'discussionid' => $discussion->id,
+                            'forumid' => $anonforum->id,
+                            'forumtype' => $anonforum->type,
+                            '$cm->id' => $cm->id
+                        )
+                    );
+
+                    if ($post->userid !== $USER->id) {
+                        $params['relateduserid'] = $post->userid;
+                    }
+                    $event = \mod_anonforum\event\post_deleted::create($params);
+                    $event->add_record_snapshot('forum_posts', $post);
+                    $event->add_record_snapshot('forum_discussions', $discussion);
+                    $event->trigger();
                 }
                 redirect(anonforum_go_back_to($discussionurl));
             } else {
@@ -458,7 +486,42 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
         anonforum_discussion_update_last_post($newid);
 
         if (empty($post->anonymouspost)) {
-            add_to_log($discussion->course, "anonforum", "prune post", "discuss.php?d=$newid", "$post->id", $cm->id);
+            // Fire events to reflect the split..
+            $params = array(
+                'context' => $modcontext,
+                'objectid' => $discussion->id,
+                'anonymous' => 1,
+                'other' => array(
+                    'forumid' => $anonforum->id
+                )
+            );
+            $event = \mod_anonforum\event\discussion_updated::create($params);
+            $event->trigger();
+
+            $params = array(
+                'context' => $modcontext,
+                'objectid' => $newid,
+                'anonymous' => 1,
+                'other' => array(
+                    'forumid' => $anonforum->id
+                )
+            );
+            $event = \mod_anonforum\event\discussion_created::create($params);
+            $event->trigger();
+
+            $params = array(
+                'context' => $modcontext,
+                'objectid' => $post->id,
+                'anonymous' => 1,
+                'other' => array(
+                    'discussionid' => $newid,
+                    'forumid' => $anonforum->id,
+                    'forumtype' => $anonforum->type
+                )
+            );
+            $event = \mod_anonforum\event\post_updated::create($params);
+            $event->add_record_snapshot('forum_discussions', $discussion);
+            $event->trigger();
         }
         redirect(anonforum_go_back_to("discuss.php?d=$newid"));
 
@@ -697,8 +760,19 @@ if ($fromform = $mform_post->get_data()) {
             $discussionurl = "discuss.php?d=$discussion->id#p$fromform->id";
         }
         if (empty($fromform->anonymouspost)) {
-            add_to_log($course->id, "anonforum", "update post",
-                "$discussionurl&amp;parent=$fromform->id", "$fromform->id", $cm->id);
+            $params = array(
+                'context' => $modcontext,
+                'objectid' => $fromform->id,
+                'anonymous' => 1,
+                'other' => array(
+                    'discussionid' => $discussion->id,
+                    'forumid' => $anonforum->id,
+                    'forumtype' => $anonforum->type
+                )
+            );
+            $event = \mod_anonforum\event\post_updated::create($params);
+            $event->add_record_snapshot('forum_discussions', $discussion);
+            $event->trigger();
         }
         redirect(anonforum_go_back_to("$discussionurl"), $message.$subscribemessage, $timemessage);
 
@@ -741,8 +815,20 @@ if ($fromform = $mform_post->get_data()) {
                 $discussionurl = "discuss.php?d=$discussion->id";
             }
             if (empty($fromform->anonymouspost)) {
-                add_to_log($course->id, "anonforum", "add post",
-                      "$discussionurl&amp;parent=$fromform->id", "$fromform->id", $cm->id);
+                $params = array(
+                    'context' => $modcontext,
+                    'objectid' => $fromform->id,
+                    'anonymous' => 1,
+                    'other' => array(
+                        'discussionid' => $discussion->id,
+                        'forumid' => $anonforum->id,
+                        'forumtype' => $anonforum->type
+                    )
+                );
+                $event = \mod_anonforum\event\post_created::create($params);
+                $event->add_record_snapshot('forum_posts', $fromform);
+                $event->add_record_snapshot('forum_discussions', $discussion);
+                $event->trigger();
             }
             // Update completion state
             $completion=new completion_info($course);
@@ -789,8 +875,17 @@ if ($fromform = $mform_post->get_data()) {
         if ($discussion->id = anonforum_add_discussion($discussion, $mform_post, $message)) {
 
             if (empty($discussion->anonymouspost)) {
-                add_to_log($course->id, "anonforum", "add discussion",
-                    "discuss.php?d=$discussion->id", "$discussion->id", $cm->id);
+                $params = array(
+                    'context' => $modcontext,
+                    'objectid' => $discussion->id,
+                    'anonymous' => 1,
+                    'other' => array(
+                        'forumid' => $anonforum->id
+                    )
+                );
+                $event = \mod_anonforum\event\discussion_created::create($params);
+                $event->add_record_snapshot('forum_discussions', $discussion);
+                $event->trigger();
             }
             $timemessage = 2;
             if (!empty($message)) { // if we're printing stuff about the file upload

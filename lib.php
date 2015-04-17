@@ -301,7 +301,6 @@ function anonforum_delete_instance($id) {
  *
  * @uses FEATURE_GROUPS
  * @uses FEATURE_GROUPINGS
- * @uses FEATURE_GROUPMEMBERSONLY
  * @uses FEATURE_MOD_INTRO
  * @uses FEATURE_COMPLETION_TRACKS_VIEWS
  * @uses FEATURE_COMPLETION_HAS_RULES
@@ -314,7 +313,6 @@ function anonforum_supports($feature) {
     switch($feature) {
         case FEATURE_GROUPS:                  return true;
         case FEATURE_GROUPINGS:               return true;
-        case FEATURE_GROUPMEMBERSONLY:        return true;
         case FEATURE_MOD_INTRO:               return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
         case FEATURE_COMPLETION_HAS_RULES:    return true;
@@ -778,10 +776,6 @@ function anonforum_cron() {
                 if (!$mailresult){
                     mtrace("Error: mod/anonforum/lib.php anonforum_cron(): Could not send out mail for id $post->id to user $userto->id".
                          " ($userto->email) .. not trying again.");
-                    if (empty($post->anonymouspost)) {
-                        add_to_log($course->id, 'anonforum', 'mail error', "discuss.php?d=$discussion->id#p$post->id",
-                            substr(format_string($post->subject, true), 0, 30), $cm->id, $userto->id);
-                    }
                     $errorcount[$post->id]++;
                 } else {
                     $mailcount[$post->id]++;
@@ -1085,9 +1079,6 @@ function anonforum_cron() {
                 if (!$mailresult) {
                     mtrace("ERROR!");
                     echo "Error: mod/anonforum/cron.php: Could not send out digest mail to user $userto->id ($userto->email)... not trying again.\n";
-                    if (empty($post->anonymouspost)) {
-                        add_to_log($course->id, 'anonforum', 'mail digest error', '', '', $cm->id, $userto->id);
-                    }
                 } else {
                     mtrace("success.");
                     $usermailcount++;
@@ -3305,7 +3296,7 @@ function anonforum_print_post($post, $discussion, $anonforum, &$cm, $course, $ow
     }
 
     if (!isset($cm->uservisible)) {
-        $cm->uservisible = coursemodule_visible_for_user($cm);
+        $cm->uservisible = \core_availability\info_module::is_user_visible($cm, 0, false);
     }
 
     if ($istracked && is_null($postisread)) {
@@ -4748,11 +4739,12 @@ function anonforum_trigger_content_uploaded_event($post, $cm, $name) {
     $params = array(
         'context' => $context,
         'objectid' => $post->id,
+        'anonymous' => 1,
         'other' => array(
             'content' => $post->message,
             'discussionid' => $post->discussion,
             'pathnamehashes' => array_keys($files),
-            'triggeredfrom' => $name,
+            'triggeredfrom' => $name
         )
     );
     $event = \mod_anonforum\event\assessable_uploaded::create($params);
@@ -5563,7 +5555,7 @@ function anonforum_user_can_see_post($anonforum, $discussion, $post, $user=NULL,
             return false;
         }
     } else {
-        if (!coursemodule_visible_for_user($cm, $user->id)) {
+        if (!\core_availability\info_module::is_user_visible($cm, $user->id)) {
             return false;
         }
     }

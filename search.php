@@ -112,7 +112,14 @@ if (!$course = $DB->get_record('course', array('id'=>$id))) {
 
 require_course_login($course);
 
-add_to_log($course->id, "anonforum", "search", "search.php?id=$course->id&amp;search=".urlencode($search), $search);
+$params = array(
+    'context' => $PAGE->context,
+    'anonymous' => 1,
+    'other' => array('searchterm' => $search)
+);
+
+$event = \mod_anonforum\event\course_searched::create($params);
+$event->trigger();
 
 $stranonforums = get_string("modulenameplural", "anonforum");
 $strsearch = get_string("search", "anonforum");

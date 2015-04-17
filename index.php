@@ -51,7 +51,13 @@ $coursecontext = context_course::instance($course->id);
 
 unset($SESSION->fromdiscussion);
 
-add_to_log($course->id, 'anonforum', 'view anonforums', "index.php?id=$course->id");
+$params = array(
+    'context' => context_course::instance($course->id),
+    'anonymous' => 1
+);
+$event = \mod_anonforum\event\course_module_instance_list_viewed::create($params);
+$event->add_record_snapshot('course', $course);
+$event->trigger();
 
 $stranonforums       = get_string('anonforums', 'anonforum');
 $stranonforum        = get_string('anonforum', 'anonforum');
@@ -197,10 +203,8 @@ if (!is_null($subscribe)) {
     $returnto = anonforum_go_back_to("index.php?id=$course->id");
     $shortname = format_string($course->shortname, true, array('context' => context_course::instance($course->id)));
     if ($subscribe) {
-        add_to_log($course->id, 'anonforum', 'subscribeall', "index.php?id=$course->id", $course->id);
         redirect($returnto, get_string('nowallsubscribed', 'anonforum', $shortname), 1);
     } else {
-        add_to_log($course->id, 'anonforum', 'unsubscribeall', "index.php?id=$course->id", $course->id);
         redirect($returnto, get_string('nowallunsubscribed', 'anonforum', $shortname), 1);
     }
 }

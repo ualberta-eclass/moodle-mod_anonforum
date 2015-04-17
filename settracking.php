@@ -58,10 +58,19 @@ if (!anonforum_tp_can_track_anonforums($anonforum)) {
 $info = new stdClass();
 $info->name  = fullname($USER);
 $info->anonforum = format_string($anonforum->name);
+
+$eventparams = array(
+    'context' => context_module::instance($cm->id),
+    'relateduserid' => $USER->id,
+    'anonymous' => 1,
+    'other' => array('anonforumid' => $anonforum->id),
+);
+
 if (anonforum_tp_is_tracked($anonforum) ) {
     if (anonforum_tp_stop_tracking($anonforum->id)) {
         if (empty($anonforum->anonymous)) {
-            add_to_log($course->id, "anonforum", "stop tracking", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
+            $event = \mod_anonforum\event\readtracking_disabled::create($eventparams);
+            $event->trigger();
         }
         redirect($returnto, get_string("nownottracking", "anonforum", $info), 1);
     } else {
@@ -71,7 +80,8 @@ if (anonforum_tp_is_tracked($anonforum) ) {
 } else { // subscribe
     if (anonforum_tp_start_tracking($anonforum->id)) {
         if (empty($anonforum->anonymous)) {
-            add_to_log($course->id, "anonforum", "start tracking", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
+            $event = \mod_anonforum\event\readtracking_enabled::create($eventparams);
+            $event->trigger();
         }
         redirect($returnto, get_string("nowtracking", "anonforum", $info), 1);
     } else {

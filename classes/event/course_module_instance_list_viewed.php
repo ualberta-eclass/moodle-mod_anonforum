@@ -15,17 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version information
+ * The mod_anonforum instance list viewed event.
  *
- * @package    mod
- * @subpackage anonforum
- * @copyright  1999 onwards Martin Dougiamas  {@link http://moodle.com}
+ * @package    mod_anonforum
+ * @copyright  2015 Anthony Radziszewski <radzisze@ualberta.ca>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace mod_anonforum\event;
+
 defined('MOODLE_INTERNAL') || die();
 
-$module->version   = 2015042100;       // The current module version (Date: YYYYMMDDXX)
-$module->requires  = 2014110400;       // Requires this Moodle version
-$module->component = 'mod_anonforum';      // Full name of the plugin (used for diagnostics)
-$module->cron      = 60;
+/**
+ * The mod_anonforum instance list viewed event class.
+ *
+ * @since      Moodle 2.8
+ * @package    mod_anonforum
+ * @copyright  2015 Anthony Radziszewski <radzisze@ualberta.ca>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class course_module_instance_list_viewed extends \core\event\course_module_instance_list_viewed {
+    // No need for any code here as everything is handled by the parent class.
+}

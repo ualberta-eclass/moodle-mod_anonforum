@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -31,7 +30,7 @@ $courseid  = optional_param('course', null, PARAM_INT); // Limit the posts to ju
 $userid = optional_param('id', $USER->id, PARAM_INT);        // User id whose posts we want to view
 $mode = optional_param('mode', 'posts', PARAM_ALPHA);   // The mode to use. Either posts or discussions
 $page = optional_param('page', 0, PARAM_INT);           // The page number to display
-$perpage = optional_param('perpage', 5, PARAM_INT);     // The number of posts to display per page
+$perpage = optional_param('perpage', 5, PARAM_INT);     // The number of posts to display per page.
 
 if (empty($userid)) {
     if (!isloggedin()) {
@@ -62,17 +61,15 @@ if ($perpage != 5) {
     $url->param('perpage', $perpage);
 }
 
-add_to_log(($isspecificcourse)?$courseid:SITEID, "anonforum", "user report", 'user.php?'.$url->get_query_string(), $userid);
-
 $user = $DB->get_record("user", array("id" => $userid), '*', MUST_EXIST);
 $usercontext = context_user::instance($user->id, MUST_EXIST);
-// Check if the requested user is the guest user
+// Check if the requested user is the guest user.
 if (isguestuser($user)) {
     // The guest user cannot post, so it is not possible to view any posts.
     // May as well just bail aggressively here.
     print_error('invaliduserid');
 }
-// Make sure the user has not been deleted
+// Make sure the user has not been deleted.
 if ($user->deleted) {
     $PAGE->set_title(get_string('userdeleted'));
     $PAGE->set_context(context_system::instance());
@@ -84,27 +81,27 @@ if ($user->deleted) {
 
 $isloggedin = isloggedin();
 $isguestuser = $isloggedin && isguestuser();
-$isparent = !$iscurrentuser && $DB->record_exists('role_assignments', array('userid'=>$USER->id, 'contextid'=>$usercontext->id));
+$isparent = !$iscurrentuser && $DB->record_exists('role_assignments', array('userid' => $USER->id, 'contextid' => $usercontext->id));
 $hasparentaccess = $isparent && has_all_capabilities(array('moodle/user:viewdetails', 'moodle/user:readuserposts'), $usercontext);
 
-// Check whether a specific course has been requested
+// Check whether a specific course has been requested.
 if ($isspecificcourse) {
-    // Get the requested course and its context
+    // Get the requested course and its context.
     $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
     $coursecontext = context_course::instance($courseid, MUST_EXIST);
     // We have a specific course to search, which we will also assume we are within.
     if ($hasparentaccess) {
         // A `parent` role won't likely have access to the course so we won't attempt
         // to enter it. We will however still make them jump through the normal
-        // login hoops
+        // login hoops.
         require_login();
         $PAGE->set_context($coursecontext);
         $PAGE->set_course($course);
     } else {
-        // Enter the course we are searching
+        // Enter the course we are searching.
         require_login($course);
     }
-    // Get the course ready for access checks
+    // Get the course ready for access checks.
     $courses = array($courseid => $course);
 } else {
     // We are going to search for all of the users posts in all courses!
@@ -126,7 +123,7 @@ if (empty($result->posts)) {
     // are no posts made by the requested user that the current user is able to
     // see.
     // In either case we need to decide whether we can show personal information
-    // about the requested user to the current user so we will execute some checks
+    // about the requested user to the current user so we will execute some checks.
 
     // First check the obvious, its the current user, a specific course has been
     // provided (require_login has been called), or they have a course contact role.
@@ -134,16 +131,17 @@ if (empty($result->posts)) {
     // requested user.
     $canviewuser = ($iscurrentuser || $isspecificcourse || empty($CFG->forceloginforprofiles) || has_coursecontact_role($userid));
     // Next we'll check the caps, if the current user has the view details and a
-    // specific course has been requested, or if they have the view all details
-    $canviewuser = ($canviewuser || ($isspecificcourse && has_capability('moodle/user:viewdetails', $coursecontext) || has_capability('moodle/user:viewalldetails', $usercontext)));
+    // specific course has been requested, or if they have the view all details.
+    $canviewuser = ($canviewuser || ($isspecificcourse && has_capability('moodle/user:viewdetails', $coursecontext) ||
+            has_capability('moodle/user:viewalldetails', $usercontext)));
 
     // If none of the above was true the next step is to check a shared relation
-    // through some course
+    // through some course.
     if (!$canviewuser) {
-        // Get all of the courses that the users have in common
+        // Get all of the courses that the users have in common.
         $sharedcourses = enrol_get_shared_courses($USER->id, $user->id, true);
         foreach ($sharedcourses as $sharedcourse) {
-            // Check the view cap within the course context
+            // Check the view cap within the course context.
             if (has_capability('moodle/user:viewdetails', context_course::instance($sharedcourse->id))) {
                 $canviewuser = true;
                 break;
@@ -152,10 +150,10 @@ if (empty($result->posts)) {
         unset($sharedcourses);
     }
 
-    // Prepare the page title
+    // Prepare the page title.
     $pagetitle = get_string('noposts', 'mod_anonforum');
 
-    // Get the page heading
+    // Get the page heading.
     if ($isspecificcourse) {
         $pageheading = format_string($course->shortname, true, array('context' => $coursecontext));
     } else {
@@ -174,7 +172,8 @@ if (empty($result->posts)) {
         }
     } else if ($canviewuser) {
         $PAGE->navigation->extend_for_user($user);
-        $PAGE->navigation->set_userid_for_parent_checks($user->id); // see MDL-25805 for reasons and for full commit reference for reversal when fixed.
+        $PAGE->navigation->set_userid_for_parent_checks($user->id); // See MDL-25805 for reasons and for full commit
+                                                                    // reference for reversal when fixed.
         $fullname = fullname($user);
         if ($discussionsonly) {
             $notification = get_string('nodiscussionsstartedby', 'anonforum', $fullname);
@@ -193,7 +192,7 @@ if (empty($result->posts)) {
         navigation_node::override_active_url($url);
     }
 
-    // Display a page letting the user know that there's nothing to display;
+    // Display a page letting the user know that there's nothing to display.
     $PAGE->set_title($pagetitle);
     $PAGE->set_heading($pageheading);
     echo $OUTPUT->header();
@@ -216,16 +215,16 @@ foreach ($result->posts as $post) {
 }
 $discussions = $DB->get_records_list('anonforum_discussions', 'id', array_unique($discussions));
 
-//todo Rather than retrieving the ratings for each post individually it would be nice to do them in groups
-//however this requires creating arrays of posts with each array containing all of the posts from a particular anonymous forum,
-//retrieving the ratings then reassembling them all back into a single array sorted by post.modified (descending)
+// Todo Rather than retrieving the ratings for each post individually it would be nice to do them in groups
+// however this requires creating arrays of posts with each array containing all of the posts from a particular anonymous forum,
+// retrieving the ratings then reassembling them all back into a single array sorted by post.modified (descending).
 $rm = new rating_manager();
 $ratingoptions = new stdClass;
 $ratingoptions->component = 'mod_anonforum';
 $ratingoptions->ratingarea = 'post';
 foreach ($result->posts as $post) {
     if (!isset($result->anonforums[$post->anonforum]) || !isset($discussions[$post->discussion])) {
-        // Something very VERY dodgy has happened if we end up here
+        // Something very VERY dodgy has happened if we end up here.
         continue;
     }
     $anonforum = $result->anonforums[$post->anonforum];
@@ -236,11 +235,11 @@ foreach ($result->posts as $post) {
     $anonforumurl = new moodle_url('/mod/anonforum/view.php', array('id' => $cm->id));
     $discussionurl = new moodle_url('/mod/anonforum/discuss.php', array('d' => $post->discussion));
 
-    // load ratings
+    // Load ratings.
     if ($anonforum->assessed != RATING_AGGREGATE_NONE) {
         $ratingoptions->context = $cm->context;
         $ratingoptions->items = array($post);
-        $ratingoptions->aggregate = $anonforum->assessed;//the aggregation method
+        $ratingoptions->aggregate = $anonforum->assessed;// The aggregation method.
         $ratingoptions->scaleid = $anonforum->scale;
         $ratingoptions->userid = $user->id;
         $ratingoptions->assesstimestart = $anonforum->assesstimestart;
@@ -252,7 +251,7 @@ foreach ($result->posts as $post) {
         }
 
         $updatedpost = $rm->get_ratings($ratingoptions);
-        //updating the array this way because we're iterating over a collection and updating them one by one
+        // Updating the array this way because we're iterating over a collection and updating them one by one.
         $result->posts[$updatedpost[0]->id] = $updatedpost[0];
     }
 
@@ -277,7 +276,8 @@ foreach ($result->posts as $post) {
         if ($post->parent != 0) {
             $postname = format_string($post->subject, true, array('context' => $cm->context));
             if (!$isspecificcourse && !$hasparentaccess) {
-                $fullsubjects[] .= html_writer::link(new moodle_url('/mod/anonforum/discuss.php', array('d' => $post->discussion, 'parent' => $post->id)), $postname);
+                $fullsubjects[] .= html_writer::link(new moodle_url('/mod/anonforum/discuss.php',
+                    array('d' => $post->discussion, 'parent' => $post->id)), $postname);
             } else {
                 $fullsubjects[] .= html_writer::tag('span', $postname);
             }
@@ -290,7 +290,8 @@ foreach ($result->posts as $post) {
     $discussionurl->set_anchor('p'.$post->id);
     $fulllink = html_writer::link($discussionurl, get_string("postincontext", "anonforum"));
 
-    $postoutput[] = anonforum_print_post($post, $discussion, $anonforum, $cm, $course, false, false, false, $fulllink, '', null, true, null, true);
+    $postoutput[] = anonforum_print_post($post, $discussion, $anonforum, $cm, $course, false, false, false,
+        $fulllink, '', null, true, null, true);
 }
 
 $userfullname = fullname($user);
@@ -318,8 +319,8 @@ if ($isspecificcourse) {
 $PAGE->set_title($pagetitle);
 $PAGE->set_heading($pagetitle);
 $PAGE->navigation->extend_for_user($user);
-$PAGE->navigation->set_userid_for_parent_checks($user->id); // see MDL-25805 for reasons and for full commit reference for reversal when fixed.
-
+$PAGE->navigation->set_userid_for_parent_checks($user->id); // See MDL-25805 for reasons and for full
+                                                            // commit reference for reversal when fixed.
 echo $OUTPUT->header();
 echo $OUTPUT->heading($inpageheading);
 echo html_writer::start_tag('div', array('class' => 'user-content'));

@@ -81,9 +81,6 @@ if ($mark == 'read') {
             print_error('invaliddiscussionid', 'anonforum');
         }
 
-        if (anonforum_tp_mark_discussion_read($user, $d) && empty($anonforum->anonymous)) {
-            add_to_log($course->id, "discussion", "mark read", "view.php?f=$anonforum->id", $d, $cm->id);
-        }
     } else {
         // Mark all messages read in current group
         $currentgroup = groups_get_activity_group($cm);
@@ -91,9 +88,6 @@ if ($mark == 'read') {
             // mark_anonymous forum_read requires ===false, while get_activity_group
             // may return 0
             $currentgroup=false;
-        }
-        if (anonforum_tp_mark_anonforum_read($user, $anonforum->id,$currentgroup) && empty($anonforum->anonymous)) {
-            add_to_log($course->id, "anonforum", "mark read", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
         }
     }
 

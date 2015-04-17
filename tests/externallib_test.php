@@ -231,7 +231,7 @@ class mod_anonforum_external_testcase extends externallib_advanced_testcase {
 
         // Check the discussions were correctly created.
         $this->assertEquals(3, $DB->count_records_select('anonforum_discussions',
-            'anonforum = :anonforum1 OR anonforum = :anonforum2 OR id = :anonforum3',
+            'anonforum = :anonforum1 OR anonforum = :anonforum2 OR anonforum = :anonforum3',
             array('anonforum1' => $anonforum1->id, 'anonforum2' => $anonforum2->id, 'anonforum3' => $anonforum3->id)));
 
         // Check the posts were correctly created, don't forget each discussion created also creates a post.

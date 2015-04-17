@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -26,11 +25,11 @@
 require_once("../../config.php");
 require_once("lib.php");
 
-$id    = required_param('id',PARAM_INT);           // anonymous forum
-$group = optional_param('group',0,PARAM_INT);      // change of group
-$edit  = optional_param('edit',-1,PARAM_BOOL);     // Turn editing on and off
+$id    = required_param('id', PARAM_INT);           // Anonymous forum
+$group = optional_param('group', 0, PARAM_INT);      // change of group
+$edit  = optional_param('edit', -1, PARAM_BOOL);     // Turn editing on and off.
 
-$url = new moodle_url('/mod/anonforum/subscribers.php', array('id'=>$id));
+$url = new moodle_url('/mod/anonforum/subscribers.php', array('id' => $id));
 if ($group !== 0) {
     $url->param('group', $group);
 }
@@ -39,8 +38,8 @@ if ($edit !== 0) {
 }
 $PAGE->set_url($url);
 
-$anonforum = $DB->get_record('anonforum', array('id'=>$id), '*', MUST_EXIST);
-$course = $DB->get_record('course', array('id'=>$anonforum->course), '*', MUST_EXIST);
+$anonforum = $DB->get_record('anonforum', array('id' => $id), '*', MUST_EXIST);
+$course = $DB->get_record('course', array('id' => $anonforum->course), '*', MUST_EXIST);
 if (! $cm = get_coursemodule_from_instance('anonforum', $anonforum->id, $course->id)) {
     $cm->id = 0;
 }
@@ -55,12 +54,18 @@ if (!has_capability('mod/anonforum:viewsubscribers', $context)) {
 unset($SESSION->fromdiscussion);
 
 if (empty($anonforum->anonymous)) {
-    add_to_log($course->id, "anonforum", "view subscribers", "subscribers.php?id=$anonforum->id", $anonforum->id, $cm->id);
+    $params = array(
+        'context' => $context,
+        'anonymous' => 1,
+        'other' => array('forumid' => $forum->id),
+    );
+    $event = \mod_anonforum\event\subscribers_viewed::create($params);
+    $event->trigger();
 }
 
 $anonforumoutput = $PAGE->get_renderer('mod_anonforum');
 $currentgroup = groups_get_activity_group($cm);
-$options = array('anonforumid'=>$anonforum->id, 'currentgroup'=>$currentgroup, 'context'=>$context);
+$options = array('anonforumid' => $anonforum->id, 'currentgroup' => $currentgroup, 'context' => $context);
 $existingselector = new anonforum_existing_subscriber_selector('existingsubscribers', $options);
 $subscriberselector = new anonforum_potential_subscriber_selector('potentialsubscribers', $options);
 $subscriberselector->set_existing_subscribers($existingselector->find_users(''));
@@ -69,7 +74,7 @@ if (data_submitted()) {
     require_sesskey();
     $subscribe = (bool)optional_param('subscribe', false, PARAM_RAW);
     $unsubscribe = (bool)optional_param('unsubscribe', false, PARAM_RAW);
-    /** It has to be one or the other, not both or neither */
+    // It has to be one or the other, not both or neither.
     if (!($subscribe xor $unsubscribe)) {
         print_error('invalidaction');
     }
@@ -108,11 +113,12 @@ if (has_capability('mod/anonforum:managesubscriptions', $context)) {
 echo $OUTPUT->header();
 echo $OUTPUT->heading(get_string('anonforum', 'anonforum').' '.$strsubscribers);
 
-// If the anonymous forum is anonymous we should never show the subscribers as such information could identify users
+// If the anonymous forum is anonymous we should never show the subscribers as such information could identify users.
 if (!empty($anonforum->anonymous)) {
     echo $anonforumoutput->subscribed_anonymous();
 } else if (empty($USER->subscriptionsediting)) {
-    echo $anonforumoutput->subscriber_overview(anonforum_subscribed_users($course, $anonforum, $currentgroup, $context), $anonforum, $course);
+    echo $anonforumoutput->subscriber_overview(anonforum_subscribed_users($course, $anonforum, $currentgroup, $context),
+        $anonforum, $course);
 } else if (anonforum_is_forcesubscribed($anonforum)) {
     $subscriberselector->set_force_subscribed(true);
     echo $anonforumoutput->subscribed_users($subscriberselector);

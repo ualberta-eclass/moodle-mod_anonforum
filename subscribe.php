@@ -150,7 +150,15 @@ if (anonforum_is_subscribed($user->id, $anonforum->id)) {
     require_sesskey();
     if (anonforum_unsubscribe($user->id, $anonforum->id)) {
         if (empty($anonforum->anonymous)) {
-            add_to_log($course->id, "anonforum", "unsubscribe", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
+            $params = array(
+                'context' => $context,
+                'courseid' => $course->id,
+                'anonymous' => 1,
+                'other' => array('forumid' => $anonforum->id, '$cm->id' => $cm->id, 'action'=> 'unsubscribe')
+            );
+            $event = mod_anonforum\event\subscription_deleted::create($params);
+            $event->add_record_snapshot('anonforum', $anonforum);
+            $event->trigger();
         }
         redirect($returnto, get_string("nownotsubscribed", "anonforum", $info), 1);
     } else {
@@ -177,7 +185,15 @@ if (anonforum_is_subscribed($user->id, $anonforum->id)) {
     require_sesskey();
     anonforum_subscribe($user->id, $anonforum->id);
     if (empty($anonforum->anonymous)) {
-        add_to_log($course->id, "anonforum", "subscribe", "view.php?f=$anonforum->id", $anonforum->id, $cm->id);
+        $params = array(
+            'context' => $context,
+            'courseid' => $course->id,
+            'anonymous' => 1,
+            'other' => array('forumid' => $anonforum->id, '$cm->id' => $cm->id, 'action'=> 'subscribe')
+        );
+        $event  = mod_anonforum\event\subscription_created::create($params);
+        $event->add_record_snapshot('anonforum', $anonforum);
+        $event->trigger();
     }
     redirect($returnto, get_string("nowsubscribed", "anonforum", $info), 1);
 }
