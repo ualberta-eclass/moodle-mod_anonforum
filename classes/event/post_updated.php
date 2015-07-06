@@ -79,11 +79,11 @@ class post_updated extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        if ($this->other['forumtype'] == 'single') {
+        if ($this->other['anonforumtype'] == 'single') {
             // Single discussion forums are an exception. We show
             // the forum itself since it only has one discussion
             // thread.
-            $url = new \moodle_url('/mod/forum/view.php', array('f' => $this->other['forumid']));
+            $url = new \moodle_url('/mod/forum/view.php', array('f' => $this->other['anonforumid']));
         } else {
             $url = new \moodle_url('/mod/forum/discuss.php', array('d' => $this->other['discussionid']));
         }
@@ -116,12 +116,12 @@ class post_updated extends \core\event\base {
             throw new \coding_exception('The \'discussionid\' value must be set in other.');
         }
 
-        if (!isset($this->other['forumid'])) {
-            throw new \coding_exception('The \'forumid\' value must be set in other.');
+        if (!isset($this->other['anonforumid'])) {
+            throw new \coding_exception('The \'anonforumid\' value must be set in other.');
         }
 
-        if (!isset($this->other['forumtype'])) {
-            throw new \coding_exception('The \'forumtype\' value must be set in other.');
+        if (!isset($this->other['anonforumtype'])) {
+            throw new \coding_exception('The \'anonforumtype\' value must be set in other.');
         }
 
         if ($this->contextlevel != CONTEXT_MODULE) {

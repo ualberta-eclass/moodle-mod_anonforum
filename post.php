@@ -342,7 +342,7 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                         'context' => $modcontext,
                         'anonymous' => 1,
                         'other' => array(
-                            'forumid' => $anonforum->id, '$cm->id' => $cm->id
+                            'anonforumid' => $anonforum->id, '$cm->id' => $cm->id
                         )
                     );
 
@@ -370,8 +370,8 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                         'anonymous' => 1,
                         'other' => array(
                             'discussionid' => $discussion->id,
-                            'forumid' => $anonforum->id,
-                            'forumtype' => $anonforum->type,
+                            'anonforumid' => $anonforum->id,
+                            'anonforumtype' => $anonforum->type,
                             '$cm->id' => $cm->id
                         )
                     );
@@ -492,7 +492,7 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                 'objectid' => $discussion->id,
                 'anonymous' => 1,
                 'other' => array(
-                    'forumid' => $anonforum->id
+                    'anonforumid' => $anonforum->id
                 )
             );
             $event = \mod_anonforum\event\discussion_updated::create($params);
@@ -503,7 +503,7 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                 'objectid' => $newid,
                 'anonymous' => 1,
                 'other' => array(
-                    'forumid' => $anonforum->id
+                    'anonforumid' => $anonforum->id
                 )
             );
             $event = \mod_anonforum\event\discussion_created::create($params);
@@ -515,8 +515,8 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                 'anonymous' => 1,
                 'other' => array(
                     'discussionid' => $newid,
-                    'forumid' => $anonforum->id,
-                    'forumtype' => $anonforum->type
+                    'anonforumid' => $anonforum->id,
+                    'anonforumtype' => $anonforum->type
                 )
             );
             $event = \mod_anonforum\event\post_updated::create($params);
@@ -766,8 +766,8 @@ if ($fromform = $mform_post->get_data()) {
                 'anonymous' => 1,
                 'other' => array(
                     'discussionid' => $discussion->id,
-                    'forumid' => $anonforum->id,
-                    'forumtype' => $anonforum->type
+                    'anonforumid' => $anonforum->id,
+                    'anonforumtype' => $anonforum->type
                 )
             );
             $event = \mod_anonforum\event\post_updated::create($params);
@@ -787,6 +787,7 @@ if ($fromform = $mform_post->get_data()) {
         $message = '';
         $addpost = $fromform;
         $addpost->anonforum=$anonforum->id;
+
         if ($fromform->id = anonforum_add_new_post($addpost, $mform_post, $message)) {
 
             $timemessage = 2;
@@ -821,8 +822,8 @@ if ($fromform = $mform_post->get_data()) {
                     'anonymous' => 1,
                     'other' => array(
                         'discussionid' => $discussion->id,
-                        'forumid' => $anonforum->id,
-                        'forumtype' => $anonforum->type
+                        'anonforumid' => $anonforum->id,
+                        'anonforumtype' => $anonforum->type
                     )
                 );
                 $event = \mod_anonforum\event\post_created::create($params);
@@ -880,7 +881,7 @@ if ($fromform = $mform_post->get_data()) {
                     'objectid' => $discussion->id,
                     'anonymous' => 1,
                     'other' => array(
-                        'forumid' => $anonforum->id
+                        'anonforumid' => $anonforum->id
                     )
                 );
                 $event = \mod_anonforum\event\discussion_created::create($params);

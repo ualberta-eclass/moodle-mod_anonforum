@@ -79,7 +79,7 @@ class post_created extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        if ($this->other['forumtype'] == 'single') {
+        if ($this->other['anonforumtype'] == 'single') {
             // Single discussion forums are an exception. We show
             // the forum itself since it only has one discussion
             // thread.
