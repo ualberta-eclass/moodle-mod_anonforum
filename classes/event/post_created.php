@@ -61,7 +61,7 @@ class post_created extends \core\event\base {
      */
     public function get_description() {
         return "The user with id '$this->userid' has created the post with id '$this->objectid' in the discussion with " .
-            "id '{$this->other['discussionid']}' in the forum with course module id '$this->contextinstanceid'.";
+            "id '{$this->other['discussionid']}' in the anonforum with course module id '$this->contextinstanceid'.";
     }
 
     /**
@@ -97,7 +97,7 @@ class post_created extends \core\event\base {
      * @return array|null
      */
     protected function get_legacy_logdata() {
-        // The legacy log table expects a relative path to /mod/forum/.
+        // The legacy log table expects a relative path to /mod/anonforum/.
         $logurl = substr($this->get_url()->out_as_local_url(), strlen('/mod/anonforum/'));
 
         return array($this->courseid, 'anonforum', 'add post', $logurl, $this->other['anonforumid'], $this->contextinstanceid);

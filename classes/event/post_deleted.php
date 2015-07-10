@@ -96,7 +96,7 @@ class post_deleted extends \core\event\base {
      * @return array|null
      */
     protected function get_legacy_logdata() {
-        // The legacy log table expects a relative path to /mod/forum/.
+        // The legacy log table expects a relative path to /mod/anonforum/.
         $logurl = substr($this->get_url()->out_as_local_url(), strlen('/mod/anonforum/'));
 
         return array($this->courseid, 'anonforum', 'delete post', $logurl, $this->objectid, $this->contextinstanceid);

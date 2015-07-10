@@ -51,7 +51,7 @@ class post_updated extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
-        $this->data['objecttable'] = 'forum_posts';
+        $this->data['objecttable'] = 'anonforum_posts';
     }
 
     /**
@@ -61,7 +61,7 @@ class post_updated extends \core\event\base {
      */
     public function get_description() {
         return "The user with id '$this->userid' has updated the post with id '$this->objectid' in the discussion with " .
-            "id '{$this->other['discussionid']}' in the forum with course module id '$this->contextinstanceid'.";
+            "id '{$this->other['discussionid']}' in the anonforum with course module id '$this->contextinstanceid'.";
     }
 
     /**
@@ -70,7 +70,7 @@ class post_updated extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventpostupdated', 'mod_forum');
+        return get_string('eventpostupdated', 'mod_anonforum');
     }
 
     /**
@@ -83,9 +83,9 @@ class post_updated extends \core\event\base {
             // Single discussion forums are an exception. We show
             // the forum itself since it only has one discussion
             // thread.
-            $url = new \moodle_url('/mod/forum/view.php', array('f' => $this->other['anonforumid']));
+            $url = new \moodle_url('/mod/anonforum/view.php', array('f' => $this->other['anonforumid']));
         } else {
-            $url = new \moodle_url('/mod/forum/discuss.php', array('d' => $this->other['discussionid']));
+            $url = new \moodle_url('/mod/anonforum/discuss.php', array('d' => $this->other['discussionid']));
         }
         $url->set_anchor('p'.$this->objectid);
         return $url;
@@ -97,10 +97,10 @@ class post_updated extends \core\event\base {
      * @return array|null
      */
     protected function get_legacy_logdata() {
-        // The legacy log table expects a relative path to /mod/forum/.
-        $logurl = substr($this->get_url()->out_as_local_url(), strlen('/mod/forum/'));
+        // The legacy log table expects a relative path to /mod/anonforum/.
+        $logurl = substr($this->get_url()->out_as_local_url(), strlen('/mod/anonforum/'));
 
-        return array($this->courseid, 'forum', 'update post', $logurl, $this->objectid, $this->contextinstanceid);
+        return array($this->courseid, 'anonforum', 'update post', $logurl, $this->objectid, $this->contextinstanceid);
     }
 
     /**

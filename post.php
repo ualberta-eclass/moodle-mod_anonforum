@@ -347,7 +347,7 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                     );
 
                     $event = \mod_anonforum\event\discussion_deleted::create($params);
-                    $event->add_record_snapshot('forum_discussions', $discussion);
+                    $event->add_record_snapshot('anonforum_discussions', $discussion);
                     $event->trigger();
                 }
                 redirect("view.php?f=$discussion->anonforum");
@@ -380,8 +380,8 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                         $params['relateduserid'] = $post->userid;
                     }
                     $event = \mod_anonforum\event\post_deleted::create($params);
-                    $event->add_record_snapshot('forum_posts', $post);
-                    $event->add_record_snapshot('forum_discussions', $discussion);
+                    $event->add_record_snapshot('anonforum_posts', $post);
+                    $event->add_record_snapshot('anonforum_discussions', $discussion);
                     $event->trigger();
                 }
                 redirect(anonforum_go_back_to($discussionurl));
@@ -520,7 +520,7 @@ if (!empty($anonforum)) {      // User is starting a new discussion in a anonfor
                 )
             );
             $event = \mod_anonforum\event\post_updated::create($params);
-            $event->add_record_snapshot('forum_discussions', $discussion);
+            $event->add_record_snapshot('anonforum_discussions', $discussion);
             $event->trigger();
         }
         redirect(anonforum_go_back_to("discuss.php?d=$newid"));
@@ -679,6 +679,8 @@ if ($fromform = $mform_post->get_data()) {
     $fromform->itemid        = $fromform->message['itemid'];
     $fromform->messageformat = $fromform->message['format'];
     $fromform->message       = $fromform->message['text'];
+    $fromform->totalscore    = 0;
+    $fromform->mailnow       = 0;
     // WARNING: the $fromform->message array has been overwritten, do not use it anymore!
     $fromform->messagetrust  = trusttext_trusted($modcontext);
 
@@ -771,7 +773,7 @@ if ($fromform = $mform_post->get_data()) {
                 )
             );
             $event = \mod_anonforum\event\post_updated::create($params);
-            $event->add_record_snapshot('forum_discussions', $discussion);
+            $event->add_record_snapshot('anonforum_discussions', $discussion);
             $event->trigger();
         }
         redirect(anonforum_go_back_to("$discussionurl"), $message.$subscribemessage, $timemessage);
@@ -827,8 +829,8 @@ if ($fromform = $mform_post->get_data()) {
                     )
                 );
                 $event = \mod_anonforum\event\post_created::create($params);
-                $event->add_record_snapshot('forum_posts', $fromform);
-                $event->add_record_snapshot('forum_discussions', $discussion);
+                $event->add_record_snapshot('anonforum_posts', $fromform);
+                $event->add_record_snapshot('anonforum_discussions', $discussion);
                 $event->trigger();
             }
             // Update completion state
@@ -873,6 +875,7 @@ if ($fromform = $mform_post->get_data()) {
         $discussion->timeend = $fromform->timeend;
         $discussion->anonymouspost = empty($fromform->anonymouspost) ? 0 : $fromform->anonymouspost;
         $message = '';
+        $discussion->assessed = 0;
         if ($discussion->id = anonforum_add_discussion($discussion, $mform_post, $message)) {
 
             if (empty($discussion->anonymouspost)) {
@@ -885,7 +888,7 @@ if ($fromform = $mform_post->get_data()) {
                     )
                 );
                 $event = \mod_anonforum\event\discussion_created::create($params);
-                $event->add_record_snapshot('forum_discussions', $discussion);
+                $event->add_record_snapshot('anonforum_discussions', $discussion);
                 $event->trigger();
             }
             $timemessage = 2;

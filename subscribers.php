@@ -57,7 +57,7 @@ if (empty($anonforum->anonymous)) {
     $params = array(
         'context' => $context,
         'anonymous' => 1,
-        'other' => array('forumid' => $forum->id),
+        'other' => array('anonforumid' => $anonforum->id),
     );
     $event = \mod_anonforum\event\subscribers_viewed::create($params);
     $event->trigger();
