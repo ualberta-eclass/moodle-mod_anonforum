@@ -42,7 +42,8 @@ class behat_mod_anonforum extends behat_base {
     /**
      * Adds a discussion to the anonymous forum specified by it's name with the provided table data (usually Subject and Message). The step begins from the forum's course page.
      *
-     * @Given /^I add a new discussion to "(?P<anonforum_name_string>(?:[^"]|\\")*)" anonymous forum with:$/
+     * @When /^I add a new discussion to "([^"]*)" anonymous forum with:$/
+     *
      * @param string $anonforumname
      * @param TableNode $table
      */
@@ -52,7 +53,7 @@ class behat_mod_anonforum extends behat_base {
         return array(
             new Given('I follow "' . $this->escape($anonforumname) . '"'),
             new Given('I press "' . get_string('addanewdiscussion', 'anonforum') . '"'),
-            new Given('I fill the moodle form with:', $table),
+            new Given('I set the following fields to these values:', $table),
             new Given('I press "' . get_string('posttoanonforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
@@ -71,11 +72,11 @@ class behat_mod_anonforum extends behat_base {
         return array(
             new Given('I follow "' . $this->escape($anonforumname) . '"'),
             new Given('I follow "' . $this->escape($postsubject) . '"'),
+            new Given('I should see "Reply"'),
             new Given('I follow "' . get_string('reply', 'anonforum') . '"'),
-            new Given('I fill the moodle form with:', $table),
+            new Given('I set the following fields to these values:', $table),
             new Given('I press "' . get_string('posttoanonforum', 'anonforum') . '"'),
             new Given('I wait to be redirected')
         );
-
     }
 }

@@ -81,6 +81,7 @@ if ($move > 0 and confirm_sesskey()) {
         print_error('cannotmovetonotfound', 'anonforum', $return);
     }
 
+    $userid = $USER->id;
     if(!\core_availability\info_module::is_user_visible($cm, $userid, false)) {
         print_error('cannotmovenotvisible', 'anonforum', $return);
     }
@@ -94,18 +95,18 @@ if ($move > 0 and confirm_sesskey()) {
     $DB->set_field('anonforum_read', 'anonforumid', $anonforumto->id, array('discussionid' => $discussion->id));
 
     $params = array(
-        'context' => $destinationctx,
+        'context' => $modcontext,
         'objectid' => $discussion->id,
         'anonymous' => 1,
         'other' => array(
             'fromanonforumid' => $anonforum->id,
-            'toanonforumid' => $forumto->id
+            'toanonforumid' => $anonforumto->id
         )
     );
     $event = \mod_anonforum\event\discussion_moved::create($params);
     $event->add_record_snapshot('anonforum_discussions', $discussion);
     $event->add_record_snapshot('anonforum', $anonforum);
-    $event->add_record_snapshot('anonforum', $forumto);
+    $event->add_record_snapshot('anonforum', $anonforumto);
     $event->trigger();
 
     // Delete the RSS files for the 2  anonymous forums to force regeneration of the feeds
@@ -164,7 +165,7 @@ if ($mark == 'read' or $mark == 'unread') {
     }
 }
 
-$searchform = forum_search_form($course);
+$searchform = anonforum_search_form($course);
 
 $anonforumnode = $PAGE->navigation->find($cm->id, navigation_node::TYPE_ACTIVITY);
 if (empty($anonforumnode)) {

@@ -1,4 +1,4 @@
-@mod @mod_anonforum
+@mod @mod_anonforum @mod_anonforum_completion_condition_number_discussions
 Feature: Set a certain number of discussions as a completion condition for a anonymous forum
   In order to ensure students are participating on anonymous forums
   As a teacher
@@ -6,14 +6,14 @@ Feature: Set a certain number of discussions as a completion condition for a ano
 
   @javascript
   Scenario: Set X number of discussions as a condition
-    Given the following "users" exists:
+    Given the following "users" exist:
       | username | firstname | lastname | email |
       | student1 | Student | 1 | student1@asd.com |
       | teacher1 | Teacher | 1 | teacher1@asd.com |
-    And the following "courses" exists:
+    And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
-    And the following "course enrolments" exists:
+    And the following "course enrolments" exist:
       | user | course | role |
       | teacher1 | C1 | editingteacher |
       | student1 | C1 | student |
@@ -26,7 +26,7 @@ Feature: Set a certain number of discussions as a completion condition for a ano
     And I follow "Course 1"
     And I turn editing mode on
     And I click on "Edit settings" "link" in the "Administration" "block"
-    And I fill the moodle form with:
+    And I set the following fields to these values:
       | Enable completion tracking | Yes |
     And I press "Save changes"
     When I add a "Anonymous forum" to section "1" and I fill the form with:
@@ -38,16 +38,16 @@ Feature: Set a certain number of discussions as a completion condition for a ano
     And I log out
     And I log in as "student1"
     And I follow "Course 1"
-    Then I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[@alt='Not completed: Test anonymous forum name']" "xpath_element"
-    And I add a new discussion to "Test anonymous anonymous forum name" anonymous forum with:
+    Then I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[@alt='Not completed: Test Anonymous forum name']" "xpath_element"
+    And I add a new discussion to "Test Anonymous forum name" anonymous forum with:
       | Subject | Post 1 subject |
       | Message | Body 1 content |
-    And I add a new discussion to "Test anonymous forum name" anonymous forum with:
+    And I add a new discussion to "Test Anonymous forum name" anonymous forum with:
       | Subject | Post 2 subject |
       | Message | Body 2 content |
     And I follow "Course 1"
-    And I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[contains(@alt, 'Completed: Test anonymous forum name')]" "xpath_element"
+    And I hover "//li[contains(concat(' ', normalize-space(@class), ' '), ' modtype_anonforum ')]/descendant::img[contains(@alt, 'Completed: Test Anonymous forum name')]" "xpath_element"
     And I log out
     And I log in as "teacher1"
     And I follow "Course 1"
-    And "Student 1" user has completed "Test anonymous forum name" activity
+    And "Student 1" user has completed "Test Anonymous forum name" activity

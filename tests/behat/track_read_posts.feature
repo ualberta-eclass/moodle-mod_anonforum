@@ -1,18 +1,18 @@
-@mod @mod_anonforum
+@mod @mod_anonforum @mod_anonforum_track_read_posts
 Feature: A teacher can set one of 3 possible options for tracking read anonymous forum posts
   In order to ease the anonymous forum posts follow up
   As a user
   I need to distinct the unread posts from the read ones
 
   Background:
-    Given the following "users" exists:
+    Given the following "users" exist:
       | username | firstname | lastname | email | trackforums |
       | student1 | Student | 1 | student1@asd.com | 1 |
       | student2 | Student | 2 | student2@asd.com | 0 |
-    And the following "courses" exists:
+    And the following "courses" exist:
       | fullname | shortname | category |
       | Course 1 | C1 | 0 |
-    And the following "course enrolments" exists:
+    And the following "course enrolments" exist:
       | user | course | role |
       | student1 | C1 | student |
       | student2 | C1 | student |
@@ -23,11 +23,11 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
   @javascript
   Scenario: Tracking anonymous forum posts off
     Given I add a "Anonymous forum" to section "1" and I fill the form with:
-      | Anonymosu forum name | Test anonymous forum name |
+      | Anonymous forum name | Test anonymous forum name |
       | Anonymous forum type | Standard anonymous forum for general use |
       | Description | Test anonymous forum description |
       | Read tracking | Off |
-    And I add a new discussion to "Test forum name" forum with:
+    And I add a new discussion to "Test anonymous forum name" anonymous forum with:
       | Subject | Test post subject |
       | Message | Test post message |
     And I log out
@@ -39,7 +39,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
 
   @javascript
   Scenario: Tracking anonymous forum posts optional with user tracking on
-    Given I add a "Anonymosu forum" to section "1" and I fill the form with:
+    Given I add a "Anonymous forum" to section "1" and I fill the form with:
       | Anonymous forum name | Test anonymous forum name |
       | Anonymous forum type | Standard anonymous forum for general use |
       | Description | Test anonymous forum description |
@@ -59,7 +59,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
     And I follow "Test anonymous forum name"
     And I follow "Track unread posts"
     And I wait to be redirected
-    And I follow "1"
+    And I follow "Test post subject"
     And I follow "Course 1"
     And I should not see "1 unread post"
 
@@ -67,7 +67,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
   Scenario: Tracking anonymous forum posts optional with user tracking off
     Given I add a "Anonymous forum" to section "1" and I fill the form with:
       | Anonymous forum name | Test anonymous forum name |
-      | Anonymosu forum type | Standard anonymous forum for general use |
+      | Anonymous forum type | Standard anonymous forum for general use |
       | Description | Test anonymous forum description |
       | Read tracking | Optional |
     And I add a new discussion to "Test anonymous forum name" anonymous forum with:
@@ -110,7 +110,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
       | Allow forced read tracking | 1 |
     And I follow "Home"
     And I follow "Course 1"
-    Given I add a "Anonymosu forum" to section "1" and I fill the form with:
+    Given I add a "Anonymous forum" to section "1" and I fill the form with:
       | Anonymous forum name | Test anonymous forum name |
       | Anonymous forum type | Standard anonymous forum for general use |
       | Description | Test anonymous forum description |
@@ -134,7 +134,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
       | Allow forced read tracking | 1 |
     And I follow "Home"
     And I follow "Course 1"
-    Given I add a "Forum" to section "1" and I fill the form with:
+    Given I add a "Anonymous forum" to section "1" and I fill the form with:
       | Anonymous forum name | Test anonymous forum name |
       | Anonymous forum type | Standard anonymous forum for general use |
       | Description | Test anonymous forum description |
@@ -156,7 +156,7 @@ Feature: A teacher can set one of 3 possible options for tracking read anonymous
     And I follow "Test anonymous forum name"
     And I follow "Track unread posts"
     And I wait to be redirected
-    And I follow "1"
+    And I follow "Test post subject"
     And I follow "Course 1"
     And I should not see "1 unread post"
 

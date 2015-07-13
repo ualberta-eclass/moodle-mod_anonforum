@@ -8133,7 +8133,7 @@ function anonforum_cm_info_view(cm_info $cm) {
 
     if (anonforum_tp_can_track_anonforums()) {
         if ($unread = anonforum_tp_count_anonforum_unread_posts($cm, $cm->get_course())) {
-            $out = '<span class="unread"> <a href="' . $cm->get_url() . '">';
+            $out = '<span class="unread"> <a href="' . $cm->url . '">';
             if ($unread == 1) {
                 $out .= get_string('unreadpostsone', 'anonforum');
             } else {
