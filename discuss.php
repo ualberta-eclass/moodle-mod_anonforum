@@ -183,7 +183,12 @@ $PAGE->set_title("$course->shortname: ".format_string($discussion->name));
 $PAGE->set_heading($course->fullname);
 $PAGE->set_button($searchform);
 echo $OUTPUT->header();
-echo $OUTPUT->heading(format_string($anonforum->name), 2);
+
+// Make the heading have a link back to the main anonforum page.
+$anonforumname = format_string($anonforum->name);
+$anonforumlink = "$CFG->wwwroot/mod/anonforum/view.php?f=$anonforum->id";
+$linkhtml = $OUTPUT->action_link($anonforumlink, $anonforumname);
+echo $OUTPUT->heading($linkhtml, 2);
 
 /// Check to see if groups are being used in this anonymous forum
 /// If so, make sure the current person is allowed to see this discussion
